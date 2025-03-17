@@ -7,7 +7,7 @@
     }
 
   ],
-  "routest":[
+  "route":[
     {
       "src":"/(.*)",
       "dest":"/dist/server.js"
