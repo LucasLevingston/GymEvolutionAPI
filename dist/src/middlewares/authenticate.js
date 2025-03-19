@@ -23,7 +23,7 @@ const authenticate = async (request) => {
         if (!user) {
             throw new client_error_1.ClientError('User not found');
         }
-        // request.user as User = user;
+        request.user = user;
     }
     catch (error) {
         throw new client_error_1.ClientError(error.message);

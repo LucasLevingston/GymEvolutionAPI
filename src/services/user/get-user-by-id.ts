@@ -49,7 +49,6 @@ export async function getUserByIdService(id: string) {
               dayOfWeek: true,
               isCompleted: true,
               comments: true,
-              day: true,
               exercises: {
                 select: {
                   id: true,

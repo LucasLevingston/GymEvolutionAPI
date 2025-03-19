@@ -7,9 +7,7 @@ const addWeightRecordController = async (request, reply) => {
     const { id: userId, role } = request.user;
     const { weight, bf, date, studentId } = request.body;
     let targetUserId = userId;
-    // If a nutritionist or trainer is adding weight for a student
     if ((role === 'NUTRITIONIST' || role === 'TRAINER') && studentId) {
-        // Check if the professional is assigned to this student
         const isAssigned = await (0, is_professional_assigned_to_student_1.isProfessionalAssignedToStudent)(userId, studentId, role);
         if (!isAssigned) {
             return reply.status(403).send({ message: 'You are not assigned to this student' });

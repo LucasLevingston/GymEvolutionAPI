@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { getAllDiets } from '../../services/diet/get-all-diets';
 import { isProfessionalAssignedToStudent } from '../../services/training-week/is-professional-assigned-to-student';
+import { User } from '@prisma/client';
 
 interface Querystring {
   studentId?: string;
@@ -12,7 +13,7 @@ export async function getAllDietsController(
   }>,
   reply: FastifyReply
 ) {
-  const { userId, role } = request.user as User!;
+  const { id: userId, role } = request.user as User;
   const { studentId } = request.query;
 
   // Determine the target user ID

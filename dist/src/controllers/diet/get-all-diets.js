@@ -4,7 +4,7 @@ exports.getAllDietsController = getAllDietsController;
 const get_all_diets_1 = require("../../services/diet/get-all-diets");
 const is_professional_assigned_to_student_1 = require("../../services/training-week/is-professional-assigned-to-student");
 async function getAllDietsController(request, reply) {
-    const { userId, role } = request.user;
+    const { id: userId, role } = request.user;
     const { studentId } = request.query;
     // Determine the target user ID
     let targetUserId = userId;

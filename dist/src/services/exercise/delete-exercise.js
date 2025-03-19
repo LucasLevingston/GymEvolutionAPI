@@ -15,14 +15,12 @@ async function deleteExercise(id) {
             },
         },
     });
-    if (!exercise || !exercise.trainingDay) {
+    if (!exercise || !exercise.trainingDay?.trainingWeek) {
         throw new client_error_1.ClientError('Exercise not found');
     }
-    // Delete the exercise
     await prisma_1.prisma.exercise.delete({
         where: { id },
     });
-    // Create history entry
     await (0, create_history_entry_1.createHistoryEntry)(exercise.trainingDay.trainingWeek.userId, `Exercise ${exercise.name} deleted`);
     return true;
 }

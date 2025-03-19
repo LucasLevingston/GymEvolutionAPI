@@ -91,7 +91,7 @@ model TrainingWeek {
   id           String        @id @default(uuid())
   weekNumber   Int
   trainingDays TrainingDay[]
-  startDate    DateTime // Added this field
+  startDate    DateTime
   information  String?
   isCompleted  Boolean       @default(false)
   user         User          @relation(fields: [userId], references: [id])
@@ -103,11 +103,10 @@ model TrainingWeek {
 }
 
 model TrainingDay {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   group       String
   dayOfWeek   String
-  day         DateTime
-  isCompleted Boolean  @default(false)
+  isCompleted Boolean @default(false)
   comments    String?
 
   trainingWeek   TrainingWeek? @relation(fields: [trainingWeekId], references: [id], onDelete: Cascade)

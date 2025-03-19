@@ -1,6 +1,6 @@
-import { prisma } from '../../lib/prisma'
-import { createHistoryEntry } from '../history/create-history-entry'
-import { ClientError } from '../../errors/client-error'
+import { prisma } from '../../lib/prisma';
+import { createHistoryEntry } from '../history/create-history-entry';
+import { ClientError } from '../../errors/client-error';
 
 export async function markExerciseAsDone(id: string) {
   const exercise = await prisma.exercise.findUnique({
@@ -12,63 +12,68 @@ export async function markExerciseAsDone(id: string) {
         },
       },
     },
-  })
+  });
 
-  if (!exercise || !exercise.trainingDay) {
-    throw new ClientError('Exercise not found')
+  if (
+    !exercise ||
+    !exercise.trainingDayId ||
+    !exercise.trainingDay?.trainingWeekId ||
+    !exercise.trainingDay?.trainingWeek?.userId
+  ) {
+    throw new ClientError('Exercise not found');
   }
 
-  // Mark the exercise as done
+  // Mark the exercise as isCompleted
   const updatedExercise = await prisma.exercise.update({
     where: { id },
     data: {
-      done: true,
+      isCompleted: true,
     },
-  })
+  });
 
-  // Check if all exercises in the training day are done
+  // Check if all exercises in the training day are isCompleted
   const allExercises = await prisma.exercise.findMany({
     where: {
       trainingDayId: exercise.trainingDayId,
     },
-  })
+  });
 
-  const allDone = allExercises.every(ex => ex.done)
+  const allDone = allExercises.every((ex) => ex.isCompleted);
 
   if (allDone) {
-    // Mark the training day as done
+    // Mark the training day as isCompleted
     await prisma.trainingDay.update({
       where: { id: exercise.trainingDayId },
       data: {
-        done: true,
+        isCompleted: true,
       },
-    })
+    });
 
-    // Check if all training days in the week are done
+    // Check if all training days in the week are isCompleted
     const allTrainingDays = await prisma.trainingDay.findMany({
       where: {
         trainingWeekId: exercise.trainingDay.trainingWeekId,
       },
-    })
+    });
 
-    const allDaysDone = allTrainingDays.every(day => day.done)
+    const allDaysDone = allTrainingDays.every((day) => day.isCompleted);
 
     if (allDaysDone) {
-      // Mark the training week as done
+      // Mark the training week as isCompleted
       await prisma.trainingWeek.update({
         where: { id: exercise.trainingDay.trainingWeekId },
         data: {
-          done: true,
+          isCompleted: true,
         },
-      })
+      });
     }
   }
 
   // Create history entry
   await createHistoryEntry(
     exercise.trainingDay.trainingWeek.userId,
-    `Exercise ${exercise.name} marked as done`
-  )
+    `Exercise ${exercise.name} marked as isCompleted`
+  );
 
-  return updatedExercise
+  return updatedExercise;
 }

@@ -5,6 +5,7 @@ const zod_1 = require("zod");
 const newTrainingSchema_1 = require("./newTrainingSchema");
 const weightSchema_1 = require("./weightSchema");
 const dietSchema_1 = require("./dietSchema");
+const historySchema_1 = require("./historySchema");
 exports.userSchema = zod_1.z.object({
     id: zod_1.z.string().uuid(),
     email: zod_1.z.string(),
@@ -18,9 +19,12 @@ exports.userSchema = zod_1.z.object({
     birthDate: zod_1.z.string().optional().nullable(),
     phone: zod_1.z.string().optional().nullable(),
     currentWeight: zod_1.z.string().optional().nullable(),
-    trainingWeeks: zod_1.z.array(newTrainingSchema_1.trainingWeekSchema).optional(),
-    history: zod_1.z.any().optional(),
+    currentBf: zod_1.z.string().nullable(),
+    role: zod_1.z.string().nullable(),
+    height: zod_1.z.string().nullable(),
+    history: zod_1.z.array(historySchema_1.historySchema).optional(),
     oldWeights: zod_1.z.array(weightSchema_1.weightSchema).optional(),
+    trainingWeeks: zod_1.z.array(newTrainingSchema_1.trainingWeekSchema).optional(),
     diets: zod_1.z.array(dietSchema_1.dietSchema).optional(),
 });
 exports.userRoleSchema = zod_1.z.enum(['STUDENT', 'NUTRITIONIST', 'TRAINER', 'ADMIN']);

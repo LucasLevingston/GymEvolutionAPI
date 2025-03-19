@@ -22,6 +22,7 @@ interface CreateTrainingWeekParams {
   weekNumber: number;
   information?: string;
   userId: string;
+  startDate: Date;
   trainingDays: TrainingDay[];
 }
 
@@ -29,6 +30,7 @@ export async function createTrainingWeek({
   weekNumber,
   information,
   userId,
+  startDate,
   trainingDays,
 }: CreateTrainingWeekParams) {
   const existingWeek = await prisma.trainingWeek.findFirst({
@@ -46,6 +48,7 @@ export async function createTrainingWeek({
       weekNumber,
       information,
       userId,
+      startDate,
       trainingDays: {
         create: trainingDays.map((trainingDay) => {
           const { exercises, ...trainingDayData } = trainingDay;

@@ -25,6 +25,7 @@ interface Body {
   information?: string;
   studentId?: string;
   trainingDays: TrainingDay[];
+  startDate: Date;
 }
 
 export async function createTrainingWeekController(
@@ -34,7 +35,7 @@ export async function createTrainingWeekController(
 ) {
   try {
     const { id: userId, role } = request.user as User;
-    const { weekNumber, information, studentId, trainingDays } = request.body;
+    const { weekNumber, information, studentId, trainingDays, startDate } = request.body;
 
     let targetUserId = userId;
 
@@ -55,6 +56,7 @@ export async function createTrainingWeekController(
       information,
       userId: targetUserId,
       trainingDays,
+      startDate,
     });
 
     return trainingWeek;

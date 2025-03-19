@@ -4,7 +4,7 @@ exports.createTrainingWeek = createTrainingWeek;
 const prisma_1 = require("../../lib/prisma");
 const create_history_entry_1 = require("../history/create-history-entry");
 const client_error_1 = require("../../errors/client-error");
-async function createTrainingWeek({ weekNumber, information, userId, trainingDays, }) {
+async function createTrainingWeek({ weekNumber, information, userId, startDate, trainingDays, }) {
     const existingWeek = await prisma_1.prisma.trainingWeek.findFirst({
         where: {
             userId,
@@ -19,6 +19,7 @@ async function createTrainingWeek({ weekNumber, information, userId, trainingDay
             weekNumber,
             information,
             userId,
+            startDate,
             trainingDays: {
                 create: trainingDays.map((trainingDay) => {
                     const { exercises, ...trainingDayData } = trainingDay;

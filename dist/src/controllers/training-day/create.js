@@ -5,7 +5,9 @@ const prisma_1 = require("lib/prisma");
 async function createTrainingDayController(request, reply) {
     try {
         const trainingDay = await prisma_1.prisma.trainingDay.create({
-            data: request.body,
+            data: {
+                ...request.body,
+            },
         });
         return reply.code(201).send(trainingDay);
     }

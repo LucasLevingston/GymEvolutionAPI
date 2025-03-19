@@ -15,49 +15,52 @@ async function markExerciseAsDone(id) {
             },
         },
     });
-    if (!exercise || !exercise.trainingDay) {
+    if (!exercise ||
+        !exercise.trainingDayId ||
+        !exercise.trainingDay?.trainingWeekId ||
+        !exercise.trainingDay?.trainingWeek?.userId) {
         throw new client_error_1.ClientError('Exercise not found');
     }
-    // Mark the exercise as done
+    // Mark the exercise as isCompleted
     const updatedExercise = await prisma_1.prisma.exercise.update({
         where: { id },
         data: {
-            done: true,
+            isCompleted: true,
         },
     });
-    // Check if all exercises in the training day are done
+    // Check if all exercises in the training day are isCompleted
     const allExercises = await prisma_1.prisma.exercise.findMany({
         where: {
             trainingDayId: exercise.trainingDayId,
         },
     });
-    const allDone = allExercises.every(ex => ex.done);
+    const allDone = allExercises.every((ex) => ex.isCompleted);
     if (allDone) {
-        // Mark the training day as done
+        // Mark the training day as isCompleted
         await prisma_1.prisma.trainingDay.update({
             where: { id: exercise.trainingDayId },
             data: {
-                done: true,
+                isCompleted: true,
             },
         });
-        // Check if all training days in the week are done
+        // Check if all training days in the week are isCompleted
         const allTrainingDays = await prisma_1.prisma.trainingDay.findMany({
             where: {
                 trainingWeekId: exercise.trainingDay.trainingWeekId,
             },
         });
-        const allDaysDone = allTrainingDays.every(day => day.done);
+        const allDaysDone = allTrainingDays.every((day) => day.isCompleted);
         if (allDaysDone) {
-            // Mark the training week as done
+            // Mark the training week as isCompleted
             await prisma_1.prisma.trainingWeek.update({
                 where: { id: exercise.trainingDay.trainingWeekId },
                 data: {
-                    done: true,
+                    isCompleted: true,
                 },
             });
         }
     }
     // Create history entry
-    await (0, create_history_entry_1.createHistoryEntry)(exercise.trainingDay.trainingWeek.userId, `Exercise ${exercise.name} marked as done`);
+    await (0, create_history_entry_1.createHistoryEntry)(exercise.trainingDay.trainingWeek.userId, `Exercise ${exercise.name} marked as isCompleted`);
     return updatedExercise;
 }

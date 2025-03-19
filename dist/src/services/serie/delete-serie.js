@@ -19,14 +19,12 @@ async function deleteSerie(id) {
             },
         },
     });
-    if (!serie || !serie.exercise || !serie.exercise.trainingDay) {
+    if (!serie || !serie.exercise || !serie.exercise.trainingDay?.trainingWeek) {
         throw new client_error_1.ClientError('Serie not found');
     }
-    // Delete the serie
     await prisma_1.prisma.serie.delete({
         where: { id },
     });
-    // Create history entry
-    await (0, create_history_entry_1.createHistoryEntry)(serie.exercise.trainingDay.trainingWeek.userId, `Series ${serie.seriesIndex + 1} deleted for exercise ${serie.exercise.name}`);
+    await (0, create_history_entry_1.createHistoryEntry)(serie.exercise.trainingDay.trainingWeek.userId, `Series ${serie.seriesIndex || 0 + 1} deleted for exercise ${serie.exercise.name}`);
     return true;
 }

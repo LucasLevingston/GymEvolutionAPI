@@ -15,7 +15,7 @@ async function updateExercise(id, data) {
             },
         },
     });
-    if (!exercise || !exercise.trainingDay) {
+    if (!exercise || !exercise.trainingDay?.trainingWeek) {
         throw new client_error_1.ClientError('Exercise not found');
     }
     // Update the exercise

@@ -20,7 +20,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     variation: z.string().optional(),
     repetitions: z.number().int().positive(),
     sets: z.number().int().positive(),
-    done: z.boolean().default(false),
+    isCompleted: z.boolean().default(false),
   });
 
   // Create training day schema
@@ -28,7 +28,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     group: z.string(),
     dayOfWeek: z.string(),
     comments: z.string().optional(),
-    done: z.boolean().default(false),
+    isCompleted: z.boolean().default(false),
     exercises: z.array(createExerciseSchema).optional(),
   });
 
@@ -44,8 +44,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     id: z.string().uuid(),
     weekNumber: z.number(),
     information: z.string().nullable(),
-    current: z.boolean(),
-    done: z.boolean(),
+    isCompleted: z.boolean(),
     userId: z.string().uuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -82,7 +81,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     id: z.string().uuid(),
     group: z.string(),
     dayOfWeek: z.string(),
-    done: z.boolean(),
+    isCompleted: z.boolean(),
     comments: z.string().nullable(),
     trainingWeekId: z.string().uuid(),
     createdAt: z.date(),
@@ -133,7 +132,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     variation: z.string().nullable(),
     repetitions: z.number(),
     sets: z.number(),
-    done: z.boolean(),
+    isCompleted: z.boolean(),
     trainingDayId: z.string().uuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -176,8 +175,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
   const updateTrainingWeekSchema = z.object({
     weekNumber: z.number().int().positive().optional(),
     information: z.string().optional(),
-    current: z.boolean().optional(),
-    done: z.boolean().optional(),
+    isCompleted: z.boolean().optional(),
   });
 
   server.put(

@@ -19,7 +19,7 @@ async function updateSerie(id, data) {
             },
         },
     });
-    if (!serie || !serie.exercise || !serie.exercise.trainingDay) {
+    if (!serie || !serie.exercise || !serie.exercise.trainingDay?.trainingWeek) {
         throw new client_error_1.ClientError('Serie not found');
     }
     // Update the serie
@@ -28,6 +28,6 @@ async function updateSerie(id, data) {
         data,
     });
     // Create history entry
-    await (0, create_history_entry_1.createHistoryEntry)(serie.exercise.trainingDay.trainingWeek.userId, `Series ${serie.seriesIndex + 1} updated for exercise ${serie.exercise.name}`);
+    await (0, create_history_entry_1.createHistoryEntry)(serie.exercise.trainingDay.trainingWeek.userId, `Series ${serie.seriesIndex || 0 + 1} updated for exercise ${serie.exercise.name}`);
     return updatedSerie;
 }

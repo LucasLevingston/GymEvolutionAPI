@@ -23,7 +23,7 @@ export async function updateSerie(id: string, data: UpdateSerieParams) {
     },
   });
 
-  if (!serie || !serie.exercise || !serie.exercise.trainingDay) {
+  if (!serie || !serie.exercise || !serie.exercise.trainingDay?.trainingWeek) {
     throw new ClientError('Serie not found');
   }
 

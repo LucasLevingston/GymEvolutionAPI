@@ -7,7 +7,7 @@ const client_error_1 = require("errors/client-error");
 async function createTrainingWeekController(request) {
     try {
         const { id: userId, role } = request.user;
-        const { weekNumber, information, studentId, trainingDays } = request.body;
+        const { weekNumber, information, studentId, trainingDays, startDate } = request.body;
         let targetUserId = userId;
         if (role === 'TRAINER' && studentId) {
             const isAssigned = await (0, is_trainer_assigned_to_student_1.isTrainerAssignedToStudent)(userId, studentId);
@@ -24,6 +24,7 @@ async function createTrainingWeekController(request) {
             information,
             userId: targetUserId,
             trainingDays,
+            startDate,
         });
         return trainingWeek;
     }

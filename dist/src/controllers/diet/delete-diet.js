@@ -6,7 +6,7 @@ const delete_diet_1 = require("../../services/diet/delete-diet");
 const is_professional_assigned_to_student_1 = require("../../services/training-week/is-professional-assigned-to-student");
 async function deleteDietController(request, reply) {
     const { id } = request.params;
-    const { userId, role } = request.user;
+    const { id: userId, role } = request.user;
     const diet = await (0, get_diet_by_id_1.getDietById)(id);
     // Only nutritionists can delete diets
     if (role !== 'NUTRITIONIST' && role !== 'ADMIN') {

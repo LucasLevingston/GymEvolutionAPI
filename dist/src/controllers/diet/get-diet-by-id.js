@@ -5,7 +5,7 @@ const get_diet_by_id_1 = require("../../services/diet/get-diet-by-id");
 const is_professional_assigned_to_student_1 = require("../../services/training-week/is-professional-assigned-to-student");
 async function getDietByIdController(request, reply) {
     const { id } = request.params;
-    const { userId, role } = request.user;
+    const { id: userId, role } = request.user;
     const diet = await (0, get_diet_by_id_1.getDietById)(id);
     // Check if the user has access to this diet
     if (diet.userId !== userId && role === 'STUDENT') {

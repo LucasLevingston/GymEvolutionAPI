@@ -17,13 +17,13 @@ export const userSchema = z.object({
   birthDate: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   currentWeight: z.string().optional().nullable(),
-  currentBf: z.number().nullable(),
+  currentBf: z.string().nullable(),
   role: z.string().nullable(),
   height: z.string().nullable(),
-  history: z.array(historySchema),
-  oldWeights: z.array(weightSchema),
-  trainingWeeks: z.array(trainingWeekSchema),
-  diets: z.array(dietSchema),
+  history: z.array(historySchema).optional(),
+  oldWeights: z.array(weightSchema).optional(),
+  trainingWeeks: z.array(trainingWeekSchema).optional(),
+  diets: z.array(dietSchema).optional(),
 });
 
 export const userRoleSchema = z.enum(['STUDENT', 'NUTRITIONIST', 'TRAINER', 'ADMIN']);

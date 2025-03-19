@@ -11,18 +11,6 @@ async function updateTrainingWeek(id, data) {
     if (!trainingWeek) {
         throw new client_error_1.ClientError('Training week not found');
     }
-    // If setting this week as current, unset any other current weeks
-    if (data.current) {
-        await prisma_1.prisma.trainingWeek.updateMany({
-            where: {
-                userId: trainingWeek.userId,
-                current: true,
-            },
-            data: {
-                current: false,
-            },
-        });
-    }
     // Update the training week
     const updatedTrainingWeek = await prisma_1.prisma.trainingWeek.update({
         where: { id },

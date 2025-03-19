@@ -1,11 +1,10 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
 import { getAllNutritionists } from '../../services/user/get-all-nutritionists';
 
-export async function getAllNutritionistsController(reply: FastifyReply) {
+export async function getAllNutritionistsController() {
   try {
     const nutritionists = await getAllNutritionists();
 
-    return reply.send(nutritionists);
+    return nutritionists;
   } catch (error) {
     throw error;
   }

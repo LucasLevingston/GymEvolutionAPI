@@ -10,6 +10,7 @@ exports.dietSchema = zod_1.z.object({
     totalProtein: zod_1.z.number().positive().optional().nullable(),
     totalCarbohydrates: zod_1.z.number().positive().optional().nullable(),
     totalFat: zod_1.z.number().positive().optional().nullable(),
+    isCurrent: zod_1.z.boolean().optional(),
     createdAt: zod_1.z.date().optional(),
     updatedAt: zod_1.z.date().optional(),
     userId: zod_1.z.string().uuid().optional().nullable(),

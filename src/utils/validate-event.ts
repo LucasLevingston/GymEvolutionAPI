@@ -1,9 +1,14 @@
 import { User } from '@prisma/client';
 import { prisma } from 'lib/prisma';
 
-export async function validateEvent(user: User, updatedUser: User) {
+type UserWithoutPassword = Omit<
+  User,
+  'password' | 'resetPasswordToken' | 'resetPasswordExpires' | 'createdAt' | 'updatedAt'
+>;
+
+export async function validateEvent(user: UserWithoutPassword, updatedUser: User) {
   const changes: string[] = [];
-  const fieldsToCheck: Array<keyof User> = [
+  const fieldsToCheck: Array<keyof UserWithoutPassword> = [
     'name',
     'email',
     'street',

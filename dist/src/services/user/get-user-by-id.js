@@ -19,6 +19,9 @@ async function getUserByIdService(id) {
             phone: true,
             currentWeight: true,
             password: false,
+            currentBf: true,
+            role: true,
+            height: true,
             history: {
                 select: {
                     id: true,
@@ -38,7 +41,6 @@ async function getUserByIdService(id) {
                 select: {
                     id: true,
                     weekNumber: true,
-                    current: true,
                     isCompleted: true,
                     information: true,
                     userId: true,
@@ -79,6 +81,7 @@ async function getUserByIdService(id) {
                     totalProtein: true,
                     totalCarbohydrates: true,
                     totalFat: true,
+                    isCurrent: true,
                     meals: {
                         select: {
                             id: true,
@@ -87,7 +90,6 @@ async function getUserByIdService(id) {
                             protein: true,
                             carbohydrates: true,
                             fat: true,
-                            servingSize: true,
                             mealType: true,
                             createdAt: true,
                             updatedAt: true,
@@ -102,6 +104,12 @@ async function getUserByIdService(id) {
                                     name: true,
                                     protein: true,
                                     quantity: true,
+                                    fat: true,
+                                    isCompleted: true,
+                                    originalItemId: true,
+                                    substitutions: true,
+                                    quantityType: true,
+                                    originalItem: true,
                                 },
                             },
                         },

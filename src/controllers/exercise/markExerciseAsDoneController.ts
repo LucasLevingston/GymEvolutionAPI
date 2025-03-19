@@ -1,4 +1,5 @@
 import { User } from '@prisma/client';
+import { ClientError } from 'errors/client-error';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { getExerciseById } from 'services/exercise/get-exercise-by-id';
 import { markExerciseAsDone } from 'services/exercise/mark-exercise-as-done';
@@ -17,21 +18,18 @@ export const markExerciseAsDoneController = async (
   const { id } = request.params;
   const { id: userId, role } = request.user as User;
   const exercise = await getExerciseById(id);
-  const trainingDay = await getTrainingDayById(exercise.trainingDayId);
-  const trainingWeek = await getTrainingWeekById(trainingDay.trainingWeekId);
+  const trainingDay = await getTrainingDayById(exercise.trainingDayId!);
+  const trainingWeek = await getTrainingWeekById(trainingDay.trainingWeekId!);
 
-  // Students can only mark their own exercises as done
   if (role === 'STUDENT' && trainingWeek.userId !== userId) {
-    return reply.status(403).send({ message: 'Forbidden' });
+    throw new ClientError('Forbidden');
   }
 
-  // If a trainer is marking an exercise as done for a student
   if (role === 'TRAINER' && trainingWeek.userId !== userId) {
-    // Check if the trainer is assigned to this student
     const isAssigned = await isTrainerAssignedToStudent(userId, trainingWeek.userId);
 
     if (!isAssigned) {
-      return reply.status(403).send({ message: 'You are not assigned to this student' });
+      throw new ClientError('You are not assigned to this student');
     }
   }
 

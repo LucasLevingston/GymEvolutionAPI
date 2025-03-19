@@ -18,7 +18,7 @@ export async function deleteSerie(id: string) {
     },
   });
 
-  if (!serie || !serie.exercise || !serie.exercise.trainingDay) {
+  if (!serie || !serie.exercise || !serie.exercise.trainingDay?.trainingWeek) {
     throw new ClientError('Serie not found');
   }
 

@@ -11,6 +11,7 @@ async function getUserByIdController(request) {
             throw new client_error_1.ClientError('Forbidden');
         }
         const userData = await (0, get_user_by_id_1.getUserByIdService)(id);
+        console.log(userData?.diets);
         if (!userData) {
             throw new client_error_1.ClientError('User not found');
         }

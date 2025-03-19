@@ -18,14 +18,14 @@ async function trainingWeekRoutes(app) {
         variation: zod_1.z.string().optional(),
         repetitions: zod_1.z.number().int().positive(),
         sets: zod_1.z.number().int().positive(),
-        done: zod_1.z.boolean().default(false),
+        isCompleted: zod_1.z.boolean().default(false),
     });
     // Create training day schema
     const createTrainingDaySchema = zod_1.z.object({
         group: zod_1.z.string(),
         dayOfWeek: zod_1.z.string(),
         comments: zod_1.z.string().optional(),
-        done: zod_1.z.boolean().default(false),
+        isCompleted: zod_1.z.boolean().default(false),
         exercises: zod_1.z.array(createExerciseSchema).optional(),
     });
     // Create training week schema
@@ -39,8 +39,7 @@ async function trainingWeekRoutes(app) {
         id: zod_1.z.string().uuid(),
         weekNumber: zod_1.z.number(),
         information: zod_1.z.string().nullable(),
-        current: zod_1.z.boolean(),
-        done: zod_1.z.boolean(),
+        isCompleted: zod_1.z.boolean(),
         userId: zod_1.z.string().uuid(),
         createdAt: zod_1.z.date(),
         updatedAt: zod_1.z.date(),
@@ -70,7 +69,7 @@ async function trainingWeekRoutes(app) {
         id: zod_1.z.string().uuid(),
         group: zod_1.z.string(),
         dayOfWeek: zod_1.z.string(),
-        done: zod_1.z.boolean(),
+        isCompleted: zod_1.z.boolean(),
         comments: zod_1.z.string().nullable(),
         trainingWeekId: zod_1.z.string().uuid(),
         createdAt: zod_1.z.date(),
@@ -111,7 +110,7 @@ async function trainingWeekRoutes(app) {
         variation: zod_1.z.string().nullable(),
         repetitions: zod_1.z.number(),
         sets: zod_1.z.number(),
-        done: zod_1.z.boolean(),
+        isCompleted: zod_1.z.boolean(),
         trainingDayId: zod_1.z.string().uuid(),
         createdAt: zod_1.z.date(),
         updatedAt: zod_1.z.date(),
@@ -145,8 +144,7 @@ async function trainingWeekRoutes(app) {
     const updateTrainingWeekSchema = zod_1.z.object({
         weekNumber: zod_1.z.number().int().positive().optional(),
         information: zod_1.z.string().optional(),
-        current: zod_1.z.boolean().optional(),
-        done: zod_1.z.boolean().optional(),
+        isCompleted: zod_1.z.boolean().optional(),
     });
     server.put('/:id', {
         schema: {

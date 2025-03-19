@@ -1,6 +1,6 @@
-import { prisma } from '../../lib/prisma'
-import { createHistoryEntry } from '../history/create-history-entry'
-import { ClientError } from '../../errors/client-error'
+import { prisma } from '../../lib/prisma';
+import { createHistoryEntry } from '../history/create-history-entry';
+import { ClientError } from '../../errors/client-error';
 
 export async function deleteExercise(id: string) {
   const exercise = await prisma.exercise.findUnique({
@@ -12,22 +12,20 @@ export async function deleteExercise(id: string) {
         },
       },
     },
-  })
+  });
 
-  if (!exercise || !exercise.trainingDay) {
-    throw new ClientError('Exercise not found')
+  if (!exercise || !exercise.trainingDay?.trainingWeek) {
+    throw new ClientError('Exercise not found');
   }
 
-  // Delete the exercise
   await prisma.exercise.delete({
     where: { id },
-  })
+  });
 
-  // Create history entry
   await createHistoryEntry(
     exercise.trainingDay.trainingWeek.userId,
     `Exercise ${exercise.name} deleted`
-  )
+  );
 
-  return true
+  return true;
 }

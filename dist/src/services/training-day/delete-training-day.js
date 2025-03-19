@@ -11,7 +11,7 @@ async function deleteTrainingDay(id) {
             trainingWeek: true,
         },
     });
-    if (!trainingDay) {
+    if (!trainingDay?.trainingWeek) {
         throw new client_error_1.ClientError('Training day not found');
     }
     // Delete the training day

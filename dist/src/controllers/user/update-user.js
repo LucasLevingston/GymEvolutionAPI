@@ -6,6 +6,7 @@ const client_error_1 = require("errors/client-error");
 const add_1 = require("services/history/add");
 async function updateUserController(request) {
     try {
+        console.log(request.user);
         const { id } = request.params;
         const { id: userId, role } = request.user;
         const updateData = request.body;
