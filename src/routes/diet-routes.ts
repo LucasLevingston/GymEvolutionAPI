@@ -3,12 +3,12 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { authenticate } from '../middlewares/authenticate';
 import { idParamSchema } from '../schemas/common-schemas';
-import { createDietController } from 'controllers/diet/create-diet';
-import { getAllDietsController } from 'controllers/diet/get-all-diets';
-import { getDietByIdController } from 'controllers/diet/get-diet-by-id';
-import { updateDietController } from 'controllers/diet/update-diet';
-import { deleteDietController } from 'controllers/diet/delete-diet';
-import { errorResponseSchema } from 'schemas/error-schema';
+import { createDietController } from '../controllers/diet/create-diet';
+import { getAllDietsController } from '../controllers/diet/get-all-diets';
+import { getDietByIdController } from '../controllers/diet/get-diet-by-id';
+import { updateDietController } from '../controllers/diet/update-diet';
+import { deleteDietController } from '../controllers/diet/delete-diet';
+import { errorResponseSchema } from '../schemas/error-schema';
 
 export async function dietRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -111,10 +111,14 @@ export async function dietRoutes(app: FastifyInstance) {
     id: z.string().uuid(),
     name: z.string(),
     quantity: z.number(),
+    quantityType: z.string().default('g'),
     calories: z.number().nullable(),
     protein: z.number().nullable(),
     carbohydrates: z.number().nullable(),
     fat: z.number().nullable(),
+    isCompleted: z.boolean().default(false),
+    isSubstitution: z.boolean().default(false),
+    originalItemId: z.string().uuid().nullable(),
     mealId: z.string().uuid().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -123,15 +127,13 @@ export async function dietRoutes(app: FastifyInstance) {
   const getDietByIdResponseSchema = dietResponseSchema.extend({
     meals: z.array(
       mealResponseSchema.extend({
-        mealItems: z.array(mealItemResponseSchema),
+        mealItems: z.array(
+          mealItemResponseSchema.extend({
+            substitutions: z.array(mealItemResponseSchema).optional(),
+          })
+        ),
       })
     ),
-    User: z
-      .object({
-        id: z.string().uuid(),
-        name: z.string().nullable(),
-      })
-      .nullable(),
   });
 
   server.get(
@@ -155,12 +157,47 @@ export async function dietRoutes(app: FastifyInstance) {
     getDietByIdController
   );
 
+  // Define a recursive schema for meal items with substitutions
+  const mealItemSchema: any = z.object({
+    id: z.string(), // Changed from z.string().uuid().optional()
+    name: z.string(),
+    quantity: z.number(),
+    quantityType: z.string().default('g'),
+    calories: z.number().optional(),
+    protein: z.number().optional(),
+    carbohydrates: z.number().optional(),
+    fat: z.number().optional(),
+    isCompleted: z.boolean().optional(),
+    isSubstitution: z.boolean().optional(),
+    originalItemId: z.string().nullable().optional(),
+  });
+
+  // Add the recursive substitutions property
+  mealItemSchema.extend({
+    substitutions: z.array(mealItemSchema).optional(),
+  });
+
+  const mealSchema = z.object({
+    id: z.string(), // Changed from z.string().uuid().optional()
+    name: z.string(),
+    calories: z.number().optional(),
+    protein: z.number().optional(),
+    carbohydrates: z.number().optional(),
+    fat: z.number().optional(),
+    mealType: z.string().optional(),
+    day: z.number(),
+    hour: z.string(),
+    isCompleted: z.boolean().optional(),
+    mealItems: z.array(mealItemSchema).optional(),
+  });
+
   const updateDietSchema = z.object({
     weekNumber: z.number().int().positive().optional(),
     totalCalories: z.number().int().optional(),
     totalProtein: z.number().optional(),
     totalCarbohydrates: z.number().optional(),
     totalFat: z.number().optional(),
+    meals: z.array(mealSchema).optional(),
   });
 
   server.put(
@@ -170,7 +207,7 @@ export async function dietRoutes(app: FastifyInstance) {
         params: idParamSchema,
         body: updateDietSchema,
         response: {
-          200: dietResponseSchema,
+          200: getDietByIdResponseSchema,
           401: errorResponseSchema,
           403: errorResponseSchema,
           404: errorResponseSchema,

@@ -1,5 +1,4 @@
 import { History, User } from '@prisma/client';
-import { prisma } from 'lib/prisma';
 import { validateEvent } from 'utils/validate-event';
 import { getUserHistory } from './get-user-history';
 import { getUserByIdService } from 'services/user/get-user-by-id';

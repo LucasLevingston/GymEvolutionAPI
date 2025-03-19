@@ -2,6 +2,7 @@ import type { FastifyRequest } from 'fastify';
 import { createTrainingWeek } from '@/services/training-week/create-training-week';
 import { isTrainerAssignedToStudent } from '@/services/training-week/is-trainer-assigned-to-student';
 import { ClientError } from 'errors/client-error';
+import { User } from '@prisma/client';
 
 interface Exercise {
   name: string;
@@ -32,7 +33,7 @@ export async function createTrainingWeekController(
   }>
 ) {
   try {
-    const { userId, role } = request.user;
+    const { id: userId, role } = request.user as User;
     const { weekNumber, information, studentId, trainingDays } = request.body;
 
     let targetUserId = userId;

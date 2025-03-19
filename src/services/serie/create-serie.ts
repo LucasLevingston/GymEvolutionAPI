@@ -1,12 +1,13 @@
-import { prisma } from '../../lib/prisma'
-import { createHistoryEntry } from '../history/create-history-entry'
+import { Serie } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
+import { createHistoryEntry } from '../history/create-history-entry';
 
 interface CreateSerieParams {
-  seriesIndex: number
-  repetitions: number
-  weight: number
-  exerciseId: string
-  studentId: string
+  seriesIndex: number;
+  repetitions: number;
+  weight: number;
+  exerciseId: string;
+  studentId: string;
 }
 
 export async function createSerie({
@@ -22,9 +23,9 @@ export async function createSerie({
       exerciseId,
       seriesIndex,
     },
-  })
+  });
 
-  let serie
+  let serie: Serie;
 
   if (existingSerie) {
     // Update existing serie
@@ -34,7 +35,7 @@ export async function createSerie({
         repetitions,
         weight,
       },
-    })
+    });
   } else {
     // Create new serie
     serie = await prisma.serie.create({
@@ -44,19 +45,19 @@ export async function createSerie({
         weight,
         exerciseId,
       },
-    })
+    });
   }
 
   // Get the exercise name for the history entry
   const exercise = await prisma.exercise.findUnique({
     where: { id: exerciseId },
-  })
+  });
 
   // Create history entry
   await createHistoryEntry(
     studentId,
     `Series ${seriesIndex + 1} recorded for exercise ${exercise?.name}`
-  )
+  );
 
-  return serie
+  return serie;
 }

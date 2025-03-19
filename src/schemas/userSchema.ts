@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { trainingWeekSchema } from './newTrainingSchema';
 import { weightSchema } from './weightSchema';
 import { dietSchema } from './dietSchema';
+import { historySchema } from './historySchema';
 
 export const userSchema = z.object({
   id: z.string().uuid(),
@@ -16,10 +17,13 @@ export const userSchema = z.object({
   birthDate: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   currentWeight: z.string().optional().nullable(),
-  trainingWeeks: z.array(trainingWeekSchema).optional(),
-  history: z.any().optional(),
-  oldWeights: z.array(weightSchema).optional(),
-  diets: z.array(dietSchema).optional(),
+  currentBf: z.number().nullable(),
+  role: z.string().nullable(),
+  height: z.string().nullable(),
+  history: z.array(historySchema),
+  oldWeights: z.array(weightSchema),
+  trainingWeeks: z.array(trainingWeekSchema),
+  diets: z.array(dietSchema),
 });
 
 export const userRoleSchema = z.enum(['STUDENT', 'NUTRITIONIST', 'TRAINER', 'ADMIN']);

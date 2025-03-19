@@ -1,23 +1,37 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import { verifyToken } from '../utils/jwt';
 import { ClientError } from '../errors/client-error';
+import { getUserByIdService } from '../services/user/get-user-by-id';
 
-export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
+export const authenticate = async (request: FastifyRequest) => {
   try {
     const authHeader = request.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new ClientError('No token provided');
+    if (!authHeader) {
+      throw new ClientError('Authorization header is missing');
     }
+
     const token = authHeader.split(' ')[1];
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      throw new ClientError('Invalid or expired token');
+    if (!token) {
+      throw new ClientError('Token is missing');
     }
 
-    request.user = typeof decoded === 'string' ? { userId: decoded } : (decoded as any);
-  } catch (err: any) {
-    return reply.status(401).send({ message: err.message });
+    const payload = verifyToken(token);
+    const tokenUserId = payload.userId;
+
+    if (!tokenUserId || typeof tokenUserId !== 'string') {
+      throw new ClientError('Invalid token');
+    }
+
+    const user = await getUserByIdService(tokenUserId);
+
+    if (!user) {
+      throw new ClientError('User not found');
+    }
+
+    request.user = user;
+  } catch (error: any) {
+    throw new ClientError(error.message);
   }
-}
+};

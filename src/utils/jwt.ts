@@ -1,12 +1,12 @@
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import jwt, { type JwtPayload } from 'jsonwebtoken';
-import { env } from '../env';
 import { ClientError } from '../errors/client-error';
+import { env } from '../env';
 
 const { JWT_SECRET_KEY } = env;
 
-if (!JWT_SECRET_KEY) {
-  throw new ClientError('Not secret key');
+interface JwtUserPayload {
+  userId: string;
 }
 
 export const hashPassword = async (password: string): Promise<string> => {
@@ -21,12 +21,13 @@ export const comparePassword = async (
 };
 
 export const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, JWT_SECRET_KEY, { expiresIn: '10h' });
+  return jwt.sign({ userId } as JwtUserPayload, JWT_SECRET_KEY, { expiresIn: '10h' });
 };
 
-export const verifyToken = (token: string): string | JwtPayload => {
+export const verifyToken = (token: string): JwtUserPayload => {
   try {
-    return jwt.verify(token, JWT_SECRET_KEY);
+    const decoded = jwt.verify(token, JWT_SECRET_KEY) as JwtUserPayload;
+    return decoded;
   } catch (error) {
     throw new ClientError('Invalid token');
   }

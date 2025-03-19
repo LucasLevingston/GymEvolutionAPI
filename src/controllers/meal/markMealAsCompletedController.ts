@@ -1,3 +1,4 @@
+import { User } from '@prisma/client';
 import { ClientError } from 'errors/client-error';
 import { FastifyRequest } from 'fastify';
 import { getDietById } from 'services/diet/get-diet-by-id';
@@ -13,8 +14,7 @@ export const markMealAsCompletedController = async (
   }>
 ) => {
   const { id } = request.params;
-  const { id: userId, role } = request.user!;
-
+  const { id: userId, role } = request.user as User;
   const meal = await getMealById(id);
   if (!meal) {
     throw new ClientError('Meal not found.');

@@ -1,13 +1,14 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
-import { getCurrentUser } from '../../services/auth/get-current-user'
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { getCurrentUser } from '../../services/auth/get-current-user';
+import { User } from '@prisma/client';
 
 export async function getCurrentUserController(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const userId = request.user!.userId
+  const { id: userId } = request.user as User;
 
-  const user = await getCurrentUser(userId)
+  const user = await getCurrentUser(userId);
 
-  return reply.send(user)
+  return reply.send(user);
 }

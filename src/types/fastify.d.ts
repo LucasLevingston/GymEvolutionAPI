@@ -1,10 +1,8 @@
-import type { JwtPayload } from 'jsonwebtoken';
+import 'fastify';
+import { User } from '@prisma/client';
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: {
-      userId: string;
-      role?: string;
-    } & JwtPayload;
+    user: User | null;
   }
 }

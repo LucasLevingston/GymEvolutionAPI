@@ -23,6 +23,7 @@ model User {
   currentWeight        String?
   currentBf            String?
   resetPasswordToken   String?
+  height               String?
   resetPasswordExpires DateTime?
   role                 String         @default("STUDENT")
   history              History[]
@@ -61,21 +62,6 @@ model Relationship {
   @@map("relationships")
 }
 
-model TrainingWeek {
-  id           String        @id @default(uuid())
-  weekNumber   Int
-  trainingDays TrainingDay[]
-  current      Boolean       @default(false)
-  information  String?
-  isCompleted  Boolean       @default(false)
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  @@map("trainingWeeks")
-}
-
 model History {
   id        String   @id @default(uuid())
   event     String
@@ -99,20 +85,37 @@ model Weight {
   @@map("weights")
 }
 
+// Updated models to match your TypeScript types
+
+model TrainingWeek {
+  id           String        @id @default(uuid())
+  weekNumber   Int
+  trainingDays TrainingDay[]
+  startDate    DateTime // Added this field
+  information  String?
+  isCompleted  Boolean       @default(false)
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("trainingWeeks")
+}
+
 model TrainingDay {
   id          String   @id @default(uuid())
   group       String
   dayOfWeek   String
+  day         DateTime
   isCompleted Boolean  @default(false)
   comments    String?
-  day         DateTime
 
-  exercises Exercise[]
-
-  trainingWeek   TrainingWeek @relation(fields: [trainingWeekId], references: [id], onDelete: Cascade)
-  trainingWeekId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  trainingWeek   TrainingWeek? @relation(fields: [trainingWeekId], references: [id], onDelete: Cascade)
+  trainingWeekId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  trainingDayId  String?
+  exercises      Exercise[]
 
   @@map("trainingDays")
 }
@@ -126,7 +129,7 @@ model Exercise {
   isCompleted   Boolean      @default(false)
   seriesResults Serie[]
   trainingDay   TrainingDay? @relation(fields: [trainingDayId], references: [id])
-  trainingDayId String
+  trainingDayId String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -134,14 +137,14 @@ model Exercise {
 }
 
 model Serie {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   seriesIndex Int?
   repetitions Int?
-  weight      Int?
-  exercise    Exercise @relation(fields: [exerciseId], references: [id])
-  exerciseId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  weight      Int? // Changed from Float to Int to match TypeScript type
+  exercise    Exercise? @relation(fields: [exerciseId], references: [id])
+  exerciseId  String? // Made optional to match TypeScript type
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("series")
 }

@@ -1,25 +1,25 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
-import { getDietById } from '../../services/diet/get-diet-by-id'
-import { isProfessionalAssignedToStudent } from '../../services/training-week/is-professional-assigned-to-student'
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { getDietById } from '../../services/diet/get-diet-by-id';
+import { isProfessionalAssignedToStudent } from '../../services/training-week/is-professional-assigned-to-student';
 
 interface Params {
-  id: string
+  id: string;
 }
 
 export async function getDietByIdController(
   request: FastifyRequest<{
-    Params: Params
+    Params: Params;
   }>,
   reply: FastifyReply
 ) {
-  const { id } = request.params
-  const { userId, role } = request.user!
+  const { id } = request.params;
+  const { userId, role } = request.user as User!;
 
-  const diet = await getDietById(id)
+  const diet = await getDietById(id);
 
   // Check if the user has access to this diet
   if (diet.userId !== userId && role === 'STUDENT') {
-    return reply.status(403).send({ message: 'Forbidden' })
+    return reply.status(403).send({ message: 'Forbidden' });
   }
 
   // If a nutritionist is trying to access a student's diet
@@ -29,14 +29,12 @@ export async function getDietByIdController(
       userId,
       diet.userId!,
       'NUTRITIONIST'
-    )
+    );
 
     if (!isAssigned) {
-      return reply
-        .status(403)
-        .send({ message: 'You are not assigned to this student' })
+      return reply.status(403).send({ message: 'You are not assigned to this student' });
     }
   }
 
-  return reply.send(diet)
+  return reply.send(diet);
 }

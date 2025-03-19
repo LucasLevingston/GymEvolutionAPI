@@ -8,6 +8,7 @@ export const dietSchema = z.object({
   totalProtein: z.number().positive().optional().nullable(),
   totalCarbohydrates: z.number().positive().optional().nullable(),
   totalFat: z.number().positive().optional().nullable(),
+  isCurrent: z.boolean().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
   userId: z.string().uuid().optional().nullable(),

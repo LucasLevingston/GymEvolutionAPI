@@ -15,14 +15,14 @@ export async function updateUserController(
   }>
 ) {
   try {
+    console.log(request.user);
     const { id } = request.params;
-    const { userId, role } = request.user;
+    const { id: userId, role } = request.user as User;
 
     const updateData = request.body;
     if (id !== userId && role !== 'ADMIN') {
       throw new ClientError('Forbidden');
     }
-
     const history = await addToHistory(updateData);
     if (!history) throw new ClientError('Error on add to history');
 

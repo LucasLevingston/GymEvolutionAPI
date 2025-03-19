@@ -14,9 +14,10 @@ export async function validateEvent(user: User, updatedUser: User) {
     'sex',
     'phone',
     'birthDate',
+    'phone',
   ];
 
-  fieldsToCheck.forEach((field) => {
+  fieldsToCheck.map((field) => {
     if (user[field] !== updatedUser[field]) {
       changes.push(
         `The field ${field} has been changed from ${user[field]} to ${updatedUser[field]}`

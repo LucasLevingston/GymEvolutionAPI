@@ -26,6 +26,7 @@ export async function addWeightRecord({
     where: { id: userId },
     data: {
       currentWeight: weight,
+      currentBf: bf,
     },
   });
 
