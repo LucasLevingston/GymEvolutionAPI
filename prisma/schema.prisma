@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id                   String         @id @default(uuid())
-  email                String         @unique
+  id                   String    @id @default(uuid())
+  email                String    @unique
   password             String
   name                 String?
   sex                  String?
@@ -25,11 +25,23 @@ model User {
   resetPasswordToken   String?
   height               String?
   resetPasswordExpires DateTime?
-  role                 String         @default("STUDENT")
-  history              History[]
-  oldWeights           Weight[]
-  trainingWeeks        TrainingWeek[]
-  diets                Diet[]
+  role                 String    @default("STUDENT")
+
+  bio            String?
+  experience     Int?
+  rating         Float?
+  imageUrl       String?
+  specialties    String?
+  certifications String?
+  education      String?
+  availability   String?
+  reviews        String?
+
+  history       History[]
+  oldWeights    Weight[]
+  trainingWeeks TrainingWeek[]
+  diets         Diet[]
+  Notification  Notification[]
 
   studentsAsNutritionist Relationship[] @relation("NutritionistToStudent")
   studentsAsTrainer      Relationship[] @relation("TrainerToStudent")
@@ -208,4 +220,19 @@ model MealItems {
   updatedAt DateTime @updatedAt
 
   @@map("mealItems")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String // success, error, info, default
+  read      Boolean  @default(false)
+  link      String? // Optional link to navigate to
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
 }

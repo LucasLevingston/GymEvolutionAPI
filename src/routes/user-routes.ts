@@ -19,7 +19,14 @@ import { errorResponseSchema } from 'schemas/error-schema';
 export async function userRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
-  server.addHook('onRequest', authenticate);
+  server.addHook('onRequest', async (request) => {
+    if (
+      request.originalUrl !== '/users/role/nutritionists' &&
+      request.originalUrl !== '/users/role/trainers'
+    ) {
+      await authenticate(request);
+    }
+  });
 
   const getAllUsersResponseSchema = z.array(userResponseSchema);
 
@@ -126,6 +133,15 @@ export async function userRoutes(app: FastifyInstance) {
       id: z.string().uuid(),
       name: z.string().nullable(),
       email: z.string().email(),
+      bio: z.string().nullable(),
+      availability: z.array(z.string()).nullable(),
+      certifications: z.array(z.string()).nullable(),
+      specialties: z.array(z.string()).nullable(),
+      education: z.array(z.string()).nullable(),
+      reviews: z.any().nullable(),
+      imageUrl: z.string().url().nullable(),
+      rating: z.number().min(0).max(5).nullable(),
+      experience: z.number().int().nullable(),
     })
   );
 
@@ -141,18 +157,25 @@ export async function userRoutes(app: FastifyInstance) {
         tags: ['users'],
         summary: 'Get all nutritionists',
         description: 'Get all users with the nutritionist role',
-        security: [{ bearerAuth: [] }],
       },
     },
     getAllNutritionistsController
   );
 
-  // Get all trainers schema
   const getTrainersResponseSchema = z.array(
     z.object({
       id: z.string().uuid(),
       name: z.string().nullable(),
       email: z.string().email(),
+      bio: z.string().nullable(),
+      availability: z.array(z.string()).nullable(),
+      certifications: z.array(z.string()).nullable(),
+      specialties: z.array(z.string()).nullable(),
+      education: z.array(z.string()).nullable(),
+      reviews: z.any().nullable(),
+      imageUrl: z.string().url().nullable(),
+      rating: z.number().min(0).max(5).nullable(),
+      experience: z.number().int().nullable(),
     })
   );
 
@@ -168,7 +191,6 @@ export async function userRoutes(app: FastifyInstance) {
         tags: ['users'],
         summary: 'Get all trainers',
         description: 'Get all users with the trainer role',
-        security: [{ bearerAuth: [] }],
       },
     },
     getAllTrainersController
