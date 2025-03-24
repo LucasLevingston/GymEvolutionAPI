@@ -37,6 +37,13 @@ model User {
   availability   String?
   reviews        String?
 
+  abacatePayId        String?
+  abacatePayConnected Boolean @default(false)
+
+  plans                  Plan[]    @relation("ProfessionalToPlans")
+  meetingsAsProfessional Meeting[] @relation("ProfessionalToMeetings")
+  meetingsAsStudent      Meeting[] @relation("StudentToMeetings")
+
   history       History[]
   oldWeights    Weight[]
   trainingWeeks TrainingWeek[]
@@ -51,7 +58,31 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  purchasesAsBuyer        Purchase[] @relation("BuyerToPurchase")
+  purchasesAsProfessional Purchase[] @relation("ProfessionalToPurchase")
+  Purchase                Purchase[]
+
   @@map("users")
+}
+
+model Plan {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int
+  features    String
+  isActive    Boolean @default(true)
+
+  professional   User   @relation("ProfessionalToPlans", fields: [professionalId], references: [id])
+  professionalId String
+
+  purchases Purchase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plans")
 }
 
 model Relationship {
@@ -67,9 +98,10 @@ model Relationship {
   student2   User?   @relation("StudentToTrainer", fields: [student2Id], references: [id], onDelete: SetNull)
   student2Id String? @unique
 
-  status    String   @default("PENDING")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    String    @default("PENDING")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Purchase  Purchase?
 
   @@map("relationships")
 }
@@ -235,4 +267,65 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   @@map("notifications")
+}
+
+model Purchase {
+  id String @id @default(uuid())
+
+  // Relationship with users
+  buyer          User   @relation("BuyerToPurchase", fields: [buyerId], references: [id])
+  buyerId        String
+  professional   User   @relation("ProfessionalToPurchase", fields: [professionalId], references: [id])
+  professionalId String
+
+  // Purchase details
+  planId        String
+  amount        Float
+  status        String  @default("PENDING") // PENDING, COMPLETED, CANCELLED, REFUNDED
+  paymentMethod String?
+  paymentId     String? // External payment ID
+
+  // Cancellation details
+  cancelReason  String?
+  cancelComment String?
+  cancelledAt   DateTime?
+
+  // Relationship with the professional-student relationship
+  relationship   Relationship? @relation(fields: [relationshipId], references: [id])
+  relationshipId String?       @unique
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  User      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+  Plan      Plan      @relation(fields: [planId], references: [id])
+  Meeting   Meeting[]
+
+  @@map("purchases")
+}
+
+model Meeting {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  meetLink    String? // Link do Google Meet
+  meetingCode String? // Código da reunião
+  startTime   DateTime
+  endTime     DateTime
+  status      String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+
+  // Relação com o profissional e o aluno
+  professional   User   @relation("ProfessionalToMeetings", fields: [professionalId], references: [id])
+  professionalId String
+  student        User   @relation("StudentToMeetings", fields: [studentId], references: [id])
+  studentId      String
+
+  // Relação com a compra (opcional)
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+  purchaseId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("meetings")
 }

@@ -23,6 +23,12 @@ import { mealRoutes } from './routes/meal-routes';
 import { mealItemsRoutes } from './routes/meal-items-routes';
 import { errorHandler } from './utils/error-handler';
 import { env } from './env';
+import { professionalRoutes } from 'routes/professional-routes';
+import { planRoutes } from 'routes/plan-routes';
+import { notificationRoutes } from 'routes/notification-routes';
+import { prisma } from 'lib/prisma';
+import { hashPassword } from 'utils/jwt';
+import { purchaseRoutes } from 'routes/purchase-routes';
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -69,6 +75,10 @@ app.register(serieRoutes, { prefix: '/series' });
 app.register(dietRoutes, { prefix: '/diets' });
 app.register(mealRoutes, { prefix: '/meals' });
 app.register(mealItemsRoutes, { prefix: '/meal-items' });
+app.register(professionalRoutes, { prefix: '/professionals' });
+app.register(planRoutes, { prefix: '/plans' });
+app.register(notificationRoutes, { prefix: '/notifications' });
+app.register(purchaseRoutes, { prefix: '/purchases' });
 
 app.get('/help', () => {
   return {
@@ -78,10 +88,11 @@ app.get('/help', () => {
 const port = env.PORT;
 const host = env.HOST;
 
-app.listen({ host, port }, (err) => {
+app.listen({ host, port }, async (err) => {
   if (err) {
     console.error(err);
     process.exit(1);
   }
+
   console.log(`Server is running on http://${host}:${port}`);
 });

@@ -49,15 +49,6 @@ export async function userRoutes(app: FastifyInstance) {
     getAllUsersController
   );
 
-  const getUserByIdResponseSchema = userResponseSchema.extend({
-    sex: z.string().nullable(),
-    birthDate: z.string().nullable(),
-    phone: z.string().nullable(),
-    currentWeight: z.string().nullable(),
-    city: z.string().nullable(),
-    state: z.string().nullable(),
-  });
-
   server.get(
     '/:id',
     {
@@ -127,7 +118,6 @@ export async function userRoutes(app: FastifyInstance) {
     deleteUserController
   );
 
-  // Get all nutritionists schema
   const getNutritionistsResponseSchema = z.array(
     z.object({
       id: z.string().uuid(),

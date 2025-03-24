@@ -14,7 +14,6 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
       .send({ message: 'Invalid input', errors: error.flatten().fieldErrors });
   }
   if (error instanceof ResponseSerializationError) {
-    console.log(error);
     return reply.status(400).send({ message: 'Invalid input', error: error.cause });
   }
 

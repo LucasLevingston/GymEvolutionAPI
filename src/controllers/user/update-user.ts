@@ -15,7 +15,6 @@ export async function updateUserController(
   }>
 ) {
   try {
-    console.log(request.user);
     const { id } = request.params;
     const { id: userId, role } = request.user as User;
 

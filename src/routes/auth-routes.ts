@@ -9,6 +9,7 @@ import { resetPasswordController } from '../controllers/auth/reset-password';
 import { getCurrentUserController } from '../controllers/auth/get-current-user';
 import { errorResponseSchema } from 'schemas/error-schema';
 import { userResponseSchema, userSchema } from 'schemas/userSchema';
+import { validateTokenController } from 'controllers/auth/validate-token';
 
 export async function authRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -145,4 +146,6 @@ export async function authRoutes(app: FastifyInstance) {
     },
     getCurrentUserController
   );
+
+  server.post('/validate-token', validateTokenController);
 }

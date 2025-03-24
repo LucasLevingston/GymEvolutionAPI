@@ -22,7 +22,7 @@ export async function getUserByIdController(
     }
 
     const userData = await getUserByIdService(id);
-    console.log(userData?.diets);
+
     if (!userData) {
       throw new ClientError('User not found');
     }
