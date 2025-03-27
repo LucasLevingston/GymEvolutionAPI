@@ -29,6 +29,8 @@ import { notificationRoutes } from 'routes/notification-routes';
 import { prisma } from 'lib/prisma';
 import { hashPassword } from 'utils/jwt';
 import { purchaseRoutes } from 'routes/purchase-routes';
+import { meetingRoutes } from 'routes/meeting-routes';
+import { googleRoutes } from 'routes/google-routes';
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -79,6 +81,8 @@ app.register(professionalRoutes, { prefix: '/professionals' });
 app.register(planRoutes, { prefix: '/plans' });
 app.register(notificationRoutes, { prefix: '/notifications' });
 app.register(purchaseRoutes, { prefix: '/purchases' });
+app.register(meetingRoutes, { prefix: '/meetings' });
+app.register(googleRoutes, { prefix: '/google' });
 
 app.get('/help', () => {
   return {

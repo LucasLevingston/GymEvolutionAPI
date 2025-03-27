@@ -56,20 +56,20 @@ export async function authRoutes(app: FastifyInstance) {
 
   server.post(
     '/login',
-    {
-      schema: {
-        body: loginSchema,
-        response: {
-          200: loginResponseSchema,
-          401: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['auth'],
-        summary: 'Login a user',
-        description: 'Login a user with email and password',
-      },
-    },
+    // {
+    //   schema: {
+    //     body: loginSchema,
+    //     response: {
+    //       200: loginResponseSchema,
+    //       401: errorResponseSchema,
+    //       400: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['auth'],
+    //     summary: 'Login a user',
+    //     description: 'Login a user with email and password',
+    //   },
+    // },
     loginController
   );
 

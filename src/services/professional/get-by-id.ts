@@ -5,6 +5,9 @@ const prisma = new PrismaClient();
 export async function getProfessionalByIdService(id: string) {
   const user = await prisma.user.findUnique({
     where: { id },
+    include: {
+      ProfessionalSettings: true,
+    },
   });
 
   if (!user || (user.role !== 'NUTRITIONIST' && user.role !== 'TRAINER')) {
@@ -19,16 +22,17 @@ export async function getProfessionalByIdService(id: string) {
 
   return {
     id: user.id,
-    name: user.name || 'Unknown',
+    name: user.name,
     email: user.email,
     role: user.role,
-    bio: user.bio || '',
-    city: user.city || 'Remote',
-    state: user.state || '',
-    phone: user.phone || '',
-    imageUrl: user.imageUrl || '',
-    experience: user.experience || 0,
-    rating: user.rating || 4.5,
+    bio: user.bio,
+    city: user.city,
+    state: user.state,
+    phone: user.phone,
+    imageUrl: user.imageUrl,
+    experience: user.experience,
+    rating: user.rating,
+    professionalSettings: user.ProfessionalSettings,
     specialties,
     certifications,
     education,

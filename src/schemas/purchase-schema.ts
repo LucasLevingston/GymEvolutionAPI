@@ -1,10 +1,20 @@
 import { z } from 'zod';
 
-export const purchaseStatusEnum = z.enum([
+export const paymentStatusEnum = z.enum([
   'PENDING',
   'COMPLETED',
   'CANCELLED',
   'REFUNDED',
+]);
+
+export const purchaseStatusEnum = z.enum([
+  'WAITINGPAYMENT',
+  'SCHEDULEMEETING',
+  'SCHEDULEDMEETING',
+  'WAITINGSPREADSHEET',
+  'SPREADSHEET SENT',
+  'SCHEDULE RETURN',
+  'FINALIZED',
 ]);
 
 export const createPurchaseSchema = z.object({
@@ -18,6 +28,7 @@ export const createPurchaseSchema = z.object({
 
 export const updatePurchaseSchema = z.object({
   status: purchaseStatusEnum.optional(),
+  paymentStatus: paymentStatusEnum.optional(),
   paymentMethod: z.string().optional(),
   paymentId: z.string().optional(),
   cancelReason: z.string().optional(),
@@ -37,6 +48,7 @@ export const purchaseQuerySchema = z.object({
   buyerId: z.string().uuid('Invalid buyer ID format').optional(),
   professionalId: z.string().uuid('Invalid professional ID format').optional(),
   status: purchaseStatusEnum.optional(),
+  paymentStatus: paymentStatusEnum.optional(),
   limit: z.coerce.number().positive().optional(),
   offset: z.coerce.number().nonnegative().optional(),
 });

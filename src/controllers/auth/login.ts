@@ -19,7 +19,7 @@ export async function loginController(
     if (!isPasswordCorrect) {
       throw new ClientError('Invalid password');
     }
-
+    console.log(isPasswordCorrect);
     const token = generateToken(user.id);
 
     return {

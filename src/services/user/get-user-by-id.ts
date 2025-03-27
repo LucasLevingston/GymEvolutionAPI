@@ -20,6 +20,7 @@ export async function getUserByIdService(id: string) {
       currentBf: true,
       role: true,
       height: true,
+      ProfessionalSettings: true,
       history: {
         select: {
           id: true,

@@ -1,30 +1,14 @@
-import { Purchase } from '@prisma/client';
-import { ClientError } from 'errors/client-error';
 import { FastifyRequest } from 'fastify';
 import { PurchaseQuery } from 'schemas/purchase-schema';
 import { getPurchasesByUserIdService } from 'services/purchase/get-by-user-id';
 
 export async function getPurchasesByUserIdController(
-  request: FastifyRequest<{ Querystring: PurchaseQuery }>
+  request: FastifyRequest<{ Querystring: PurchaseQuery; Params: { userId: string } }>
 ) {
   try {
-    const { buyerId, professionalId, status, limit, offset } = request.query;
+    const { userId } = request.params;
 
-    if (!buyerId && !professionalId) {
-      throw new ClientError('Either buyerId or professionalId is required');
-    }
-
-    const purchases = buyerId
-      ? await getPurchasesByUserIdService(buyerId, 'buyer', limit, offset, status)
-      : professionalId
-      ? await getPurchasesByUserIdService(
-          professionalId,
-          'professional',
-          limit,
-          offset,
-          status
-        )
-      : null;
+    const purchases = await getPurchasesByUserIdService(userId);
 
     return purchases;
   } catch (error) {

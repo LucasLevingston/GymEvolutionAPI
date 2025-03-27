@@ -24,7 +24,7 @@ export async function cancelPurchaseController(
 
     await createNotificationService({
       title: 'Compra Cancelada',
-      message: `Sua compra do plano ${purchase.planName} foi cancelada.`,
+      message: `Sua compra do plano ${purchase.Plan.name} foi cancelada.`,
       type: 'info',
       userId: purchase.buyerId,
     });

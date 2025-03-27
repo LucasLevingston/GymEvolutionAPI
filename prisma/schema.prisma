@@ -37,9 +37,6 @@ model User {
   availability   String?
   reviews        String?
 
-  abacatePayId        String?
-  abacatePayConnected Boolean @default(false)
-
   plans                  Plan[]    @relation("ProfessionalToPlans")
   meetingsAsProfessional Meeting[] @relation("ProfessionalToMeetings")
   meetingsAsStudent      Meeting[] @relation("StudentToMeetings")
@@ -58,11 +55,48 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  purchasesAsBuyer        Purchase[] @relation("BuyerToPurchase")
-  purchasesAsProfessional Purchase[] @relation("ProfessionalToPurchase")
+  purchasesAsBuyer        Purchase[]            @relation("BuyerToPurchase")
+  purchasesAsProfessional Purchase[]            @relation("ProfessionalToPurchase")
   Purchase                Purchase[]
+  googleRefreshToken      String?
+  googleAccessToken       String?
+  GoogleConnection        GoogleConnection?
+  ProfessionalSettings    ProfessionalSettings?
 
   @@map("users")
+}
+
+model ProfessionalSettings {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  workStartHour       Int      @default(9)
+  workEndHour         Int      @default(17)
+  appointmentDuration Int      @default(60)
+  workDays            String   @default("1,2,3,4,5") // Comma-separated days: 0 = Sunday, 1 = Monday, etc.
+  timeZone            String   @default("America/Sao_Paulo")
+  bufferBetweenSlots  Int      @default(0) // Buffer time in minutes between appointments
+  maxAdvanceBooking   Int      @default(30) // Maximum days in advance for booking
+  autoAcceptMeetings  Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@map("professionalSettings")
+}
+
+model GoogleConnection {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime?
+  scope        String?
+  tokenType    String    @default("Bearer")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Plan {
@@ -129,8 +163,6 @@ model Weight {
   @@map("weights")
 }
 
-// Updated models to match your TypeScript types
-
 model TrainingWeek {
   id           String        @id @default(uuid())
   weekNumber   Int
@@ -183,9 +215,9 @@ model Serie {
   id          String    @id @default(uuid())
   seriesIndex Int?
   repetitions Int?
-  weight      Int? // Changed from Float to Int to match TypeScript type
+  weight      Int?
   exercise    Exercise? @relation(fields: [exerciseId], references: [id])
-  exerciseId  String? // Made optional to match TypeScript type
+  exerciseId  String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -258,9 +290,9 @@ model Notification {
   id        String   @id @default(uuid())
   title     String
   message   String
-  type      String // success, error, info, default
+  type      String
   read      Boolean  @default(false)
-  link      String? // Optional link to navigate to
+  link      String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   createdAt DateTime @default(now())
@@ -272,25 +304,23 @@ model Notification {
 model Purchase {
   id String @id @default(uuid())
 
-  // Relationship with users
   buyer          User   @relation("BuyerToPurchase", fields: [buyerId], references: [id])
   buyerId        String
   professional   User   @relation("ProfessionalToPurchase", fields: [professionalId], references: [id])
   professionalId String
 
-  // Purchase details
   planId        String
   amount        Float
-  status        String  @default("PENDING") // PENDING, COMPLETED, CANCELLED, REFUNDED
+  paymentStatus String  @default("PENDING")
   paymentMethod String?
-  paymentId     String? // External payment ID
+  paymentId     String?
 
-  // Cancellation details
+  status String @default("WAITINGPAYMENT")
+
   cancelReason  String?
   cancelComment String?
   cancelledAt   DateTime?
 
-  // Relationship with the professional-student relationship
   relationship   Relationship? @relation(fields: [relationshipId], references: [id])
   relationshipId String?       @unique
 
@@ -308,19 +338,17 @@ model Meeting {
   id          String   @id @default(uuid())
   title       String
   description String?
-  meetLink    String? // Link do Google Meet
-  meetingCode String? // Código da reunião
+  meetLink    String?
+  meetingCode String?
   startTime   DateTime
   endTime     DateTime
-  status      String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  status      String   @default("SCHEDULED")
 
-  // Relação com o profissional e o aluno
   professional   User   @relation("ProfessionalToMeetings", fields: [professionalId], references: [id])
   professionalId String
   student        User   @relation("StudentToMeetings", fields: [studentId], references: [id])
   studentId      String
 
-  // Relação com a compra (opcional)
   purchase   Purchase? @relation(fields: [purchaseId], references: [id])
   purchaseId String?
 

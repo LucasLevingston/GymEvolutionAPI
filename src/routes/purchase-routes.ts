@@ -3,7 +3,7 @@ import { completePurchaseController } from 'controllers/purchase/complete-purcha
 import { createPurchaseController } from 'controllers/purchase/create';
 import { getPurchaseByIdController } from 'controllers/purchase/get-by-id';
 import { getPurchasesByUserIdController } from 'controllers/purchase/get-purchase-by-user-id';
-import { refundPurchaseController } from 'controllers/purchase/refound-purchase';
+import { retryPaymentController } from 'controllers/purchase/retry-purchase';
 import { updatePurchaseController } from 'controllers/purchase/update';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -122,7 +122,7 @@ export async function purchaseRoutes(server: FastifyInstance) {
       schema: {
         params: purchaseParamsSchema,
         response: {
-          200: purchaseWithRelationsSchema,
+          // 200: purchaseWithRelationsSchema,
           404: errorResponseSchema,
           500: errorResponseSchema,
         },
@@ -136,7 +136,7 @@ export async function purchaseRoutes(server: FastifyInstance) {
 
   // Get purchases by user ID (buyer or professional)
   server.get(
-    '/',
+    '/user/:userId',
     // {
     //   schema: {
     //     querystring: purchaseQuerySchema,
@@ -153,7 +153,6 @@ export async function purchaseRoutes(server: FastifyInstance) {
     getPurchasesByUserIdController
   );
 
-  // Update a purchase
   server.patch(
     '/:id',
     {
@@ -173,27 +172,25 @@ export async function purchaseRoutes(server: FastifyInstance) {
     updatePurchaseController
   );
 
-  // Cancel a purchase
-  server.post(
+  server.put(
     '/:id/cancel',
-    {
-      schema: {
-        params: purchaseParamsSchema,
-        body: cancelPurchaseRequestSchema,
-        response: {
-          200: purchaseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['purchases'],
-        summary: 'Cancel purchase',
-        description: 'Cancel a purchase and provide a reason',
-      },
-    },
+    // {
+    //   schema: {
+    //     params: purchaseParamsSchema,
+    //     body: cancelPurchaseRequestSchema,
+    //     response: {
+    //       200: purchaseSchema,
+    //       404: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['purchases'],
+    //     summary: 'Cancel purchase',
+    //     description: 'Cancel a purchase and provide a reason',
+    //   },
+    // },
     cancelPurchaseController
   );
 
-  // Complete a purchase (payment confirmed)
   server.post(
     '/:id/complete',
     {
@@ -213,22 +210,23 @@ export async function purchaseRoutes(server: FastifyInstance) {
     completePurchaseController
   );
 
-  // Refund a purchase
-  server.post(
-    '/:id/refund',
-    {
-      schema: {
-        params: purchaseParamsSchema,
-        response: {
-          200: purchaseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['purchases'],
-        summary: 'Refund purchase',
-        description: 'Process a refund for a purchase',
-      },
-    },
-    refundPurchaseController
-  );
+  // server.post(
+  //   '/:id/refund',
+  //   {
+  //     schema: {
+  //       params: purchaseParamsSchema,
+  //       response: {
+  //         200: purchaseSchema,
+  //         404: errorResponseSchema,
+  //         500: errorResponseSchema,
+  //       },
+  //       tags: ['purchases'],
+  //       summary: 'Refund purchase',
+  //       description: 'Process a refund for a purchase',
+  //     },
+  //   },
+  //   refundPurchaseController
+  // );
+
+  server.post('/:id/retry-payment', retryPaymentController);
 }

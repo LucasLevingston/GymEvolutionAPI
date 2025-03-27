@@ -1,14 +1,18 @@
 import { prisma } from '../../lib/prisma';
-import { Diet, History, TrainingWeek, User, Weight } from '@prisma/client';
+import type { Diet, History, TrainingWeek, User, Weight } from '@prisma/client';
+import { ClientError } from '../../errors/client-error';
 
-export async function updateUser(
-  updatedUser: User & {
-    histories?: History[];
-    oldWeights?: Weight[];
-    trainingWeeks?: TrainingWeek[];
-    diets?: Diet[];
-  }
-) {
+interface UpdateUserData extends User {
+  histories?: History[];
+  oldWeights?: Weight[];
+  trainingWeeks?: TrainingWeek[];
+  diets?: Diet[];
+  ProfessionalSettings?: any;
+  GoogleConnection?: any;
+}
+
+export async function updateUserService(updatedUser: UpdateUserData) {
+  // Find the existing user
   const existingUser = await prisma.user.findUnique({
     where: { id: updatedUser.id },
     include: {
@@ -16,18 +20,75 @@ export async function updateUser(
       oldWeights: true,
       trainingWeeks: true,
       diets: true,
+      ProfessionalSettings: true,
+      GoogleConnection: true,
     },
   });
 
   if (!existingUser) {
-    throw new Error('User not found');
+    throw new ClientError('User not found');
   }
+
+  // Sort weights to find the most recent one
   const sortedWeights = [...(updatedUser.oldWeights || [])].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
   const mostRecentWeight = sortedWeights.length > 0 ? sortedWeights[0].weight : null;
 
+  // Update professional settings if provided
+  if (updatedUser.ProfessionalSettings) {
+    await prisma.professionalSettings.upsert({
+      where: {
+        userId: updatedUser.id,
+      },
+      create: {
+        userId: updatedUser.id,
+        workStartHour: updatedUser.ProfessionalSettings.workStartHour || 9,
+        workEndHour: updatedUser.ProfessionalSettings.workEndHour || 17,
+        appointmentDuration: updatedUser.ProfessionalSettings.appointmentDuration || 60,
+        workDays: updatedUser.ProfessionalSettings.workDays || '1,2,3,4,5',
+        bufferBetweenSlots: updatedUser.ProfessionalSettings.bufferBetweenSlots || 0,
+        maxAdvanceBooking: updatedUser.ProfessionalSettings.maxAdvanceBooking || 30,
+        autoAcceptMeetings: updatedUser.ProfessionalSettings.autoAcceptMeetings || false,
+        timeZone: updatedUser.ProfessionalSettings.timeZone || 'America/Sao_Paulo',
+      },
+      update: {
+        workStartHour: updatedUser.ProfessionalSettings.workStartHour,
+        workEndHour: updatedUser.ProfessionalSettings.workEndHour,
+        appointmentDuration: updatedUser.ProfessionalSettings.appointmentDuration,
+        workDays: updatedUser.ProfessionalSettings.workDays,
+        bufferBetweenSlots: updatedUser.ProfessionalSettings.bufferBetweenSlots,
+        maxAdvanceBooking: updatedUser.ProfessionalSettings.maxAdvanceBooking,
+        autoAcceptMeetings: updatedUser.ProfessionalSettings.autoAcceptMeetings,
+        timeZone: updatedUser.ProfessionalSettings.timeZone,
+      },
+    });
+  }
+
+  // Update Google connection if provided
+  if (updatedUser.GoogleConnection) {
+    await prisma.googleConnection.upsert({
+      where: {
+        userId: updatedUser.id,
+      },
+      create: {
+        userId: updatedUser.id,
+        accessToken: updatedUser.GoogleConnection.accessToken,
+        refreshToken: updatedUser.GoogleConnection.refreshToken,
+        expiresAt: updatedUser.GoogleConnection.expiresAt,
+        scope: updatedUser.GoogleConnection.scope,
+      },
+      update: {
+        accessToken: updatedUser.GoogleConnection.accessToken,
+        refreshToken: updatedUser.GoogleConnection.refreshToken,
+        expiresAt: updatedUser.GoogleConnection.expiresAt,
+        scope: updatedUser.GoogleConnection.scope,
+      },
+    });
+  }
+
+  // Update the user
   const result = await prisma.user.update({
     where: { id: updatedUser.id },
     data: {
@@ -42,13 +103,32 @@ export async function updateUser(
       phone: updatedUser.phone ?? existingUser.phone,
       currentWeight:
         mostRecentWeight ?? updatedUser.currentWeight ?? existingUser.currentWeight,
+      currentBf: updatedUser.currentBf ?? existingUser.currentBf,
+      height: updatedUser.height ?? existingUser.height,
       email: updatedUser.email ?? existingUser.email,
-      password: updatedUser.password ?? existingUser.password,
+      // Only update password if provided
+      ...(updatedUser.password ? { password: updatedUser.password } : {}),
+
+      // Professional fields
+      bio: updatedUser.bio ?? existingUser.bio,
+      experience: updatedUser.experience ?? existingUser.experience,
+      specialties: updatedUser.specialties ?? existingUser.specialties,
+      certifications: updatedUser.certifications ?? existingUser.certifications,
+      education: updatedUser.education ?? existingUser.education,
+
+      // Handle related entities
       history: {
         upsert: updatedUser.histories?.map((history) => ({
-          where: { id: history.id },
-          create: history,
-          update: history,
+          where: { id: history.id || 'new-id' },
+          create: {
+            event: history.event,
+            date: history.date,
+            ...(history.id ? { id: history.id } : {}),
+          },
+          update: {
+            event: history.event,
+            date: history.date,
+          },
         })),
       },
       oldWeights: {
@@ -71,19 +151,49 @@ export async function updateUser(
           })),
       },
       trainingWeeks: {
-        upsert: updatedUser.trainingWeeks?.map((trainingWeek) => ({
-          where: { id: trainingWeek.id },
-          create: trainingWeek,
-          update: trainingWeek,
-        })),
+        // upsert: updatedUser.trainingWeeks?.map((trainingWeek) => ({
+        //   where: { id: trainingWeek.id || 'new-id' },
+        //   create: {
+        //     name: trainingWeek.name,
+        //     description: trainingWeek.description,
+        //     startDate: trainingWeek.startDate,
+        //     endDate: trainingWeek.endDate,
+        //     ...(trainingWeek.id ? { id: trainingWeek.id } : {}),
+        //   },
+        //   update: {
+        //     name: trainingWeek.name,
+        //     description: trainingWeek.description,
+        //     startDate: trainingWeek.startDate,
+        //     endDate: trainingWeek.endDate,
+        //   },
+        // })),
       },
       diets: {
-        upsert: updatedUser.diets?.map((diet) => ({
-          where: { id: diet.id },
-          create: diet,
-          update: diet,
-        })),
+        // upsert: updatedUser.diets?.map((diet) => ({
+        //   where: { id: diet.id || 'new-id' },
+        //   create: {
+        //     name: diet.name,
+        //     description: diet.description,
+        //     startDate: diet.startDate,
+        //     endDate: diet.endDate,
+        //     ...(diet.id ? { id: diet.id } : {}),
+        //   },
+        //   update: {
+        //     name: diet.name,
+        //     description: diet.description,
+        //     startDate: diet.startDate,
+        //     endDate: diet.endDate,
+        //   },
+        // })),
       },
+    },
+    include: {
+      history: true,
+      oldWeights: true,
+      trainingWeeks: true,
+      diets: true,
+      ProfessionalSettings: true,
+      GoogleConnection: true,
     },
   });
 

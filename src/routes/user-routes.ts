@@ -72,24 +72,24 @@ export async function userRoutes(app: FastifyInstance) {
 
   server.put(
     '/:id',
-    {
-      schema: {
-        params: idParamSchema,
-        body: z.any(),
-        response: {
-          200: userSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['users'],
-        summary: 'Update user',
-        description: 'Update a user by ID',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     params: idParamSchema,
+    //     body: z.any(),
+    //     response: {
+    //       200: userSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       404: errorResponseSchema,
+    //       400: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['users'],
+    //     summary: 'Update user',
+    //     description: 'Update a user by ID',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     updateUserController
   );
 

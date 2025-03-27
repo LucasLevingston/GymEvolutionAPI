@@ -24,7 +24,7 @@ export async function completePurchaseController(
 
     await createNotificationService({
       title: 'Pagamento Confirmado',
-      message: `Seu pagamento para o plano ${purchase.planName} foi confirmado.`,
+      message: `Seu pagamento para o plano ${purchase.Plan.name} foi confirmado.`,
       type: 'success',
       userId: purchase.buyerId,
     });

@@ -1,33 +1,62 @@
-import { FastifyRequest } from 'fastify';
-import { CreatePurchaseInput, createPurchaseSchema } from 'schemas/purchase-schema';
-import { createNotificationService } from 'services/notification';
-import { createPurchaseService } from 'services/purchase/create';
+import type { FastifyRequest } from 'fastify';
+import {
+  type CreatePurchaseInput,
+  createPurchaseSchema,
+} from '../../schemas/purchase-schema';
+import { createNotificationService } from '../../services/notification';
+import { createPurchaseService } from '../../services/purchase/create';
 
 export async function createPurchaseController(
   request: FastifyRequest<{ Body: CreatePurchaseInput }>
 ) {
   try {
     const purchaseData = request.body;
-    console.log(createPurchaseSchema.parse(purchaseData));
-    const purchase = await createPurchaseService(purchaseData);
-    // await createNotificationService({
-    //   title: 'Compra Realizada',
-    //   message: `Você adquiriu o plano ${purchase.Plan.name}. Aguarde a confirmação do profissional.`,
-    //   type: 'success',
-    //   userId: purchase.buyerId,
-    //   link: `/purchase-success/${purchase.professionalId}/${purchase.planId}`,
-    // });
 
-    // await createNotificationService({
-    //   title: 'Nova Solicitação',
-    //   message: 'Você recebeu uma nova solicitação de aluno.',
-    //   type: 'info',
-    //   userId: purchase.professionalId,
-    //   link: '/professional-dashboard',
-    // });
+    // Validate input data
+    const validationResult = createPurchaseSchema.safeParse(purchaseData);
+    if (!validationResult.success) {
+      throw new Error(`Invalid purchase data: ${validationResult.error.message}`);
+    }
 
-    return purchase;
+    // Create purchase and initiate payment
+    const result = await createPurchaseService(purchaseData);
+
+    // Send notifications based on payment status
+    if (result.status === 'PENDING') {
+      await createNotificationService({
+        title: 'Pagamento pendente',
+        message: `Você iniciou um pedido do plano ${result.purchase.Plan.name}. Complete o pagamento para ativar seu plano.`,
+        type: 'info',
+        userId: result.purchase.buyerId,
+        link: `/purchases/${result.purchase.id}`,
+      });
+    } else if (result.status === 'COMPLETED') {
+      await createNotificationService({
+        title: 'Pedido confirmado',
+        message: `Seu pagamento para o plano ${result.purchase.Plan.name} foi confirmado. Aproveite seu plano!`,
+        type: 'success',
+        userId: result.purchase.buyerId,
+        link: `/purchases/${result.purchase.id}`,
+      });
+
+      await createNotificationService({
+        title: 'Novo cliente',
+        message: 'Você tem um novo cliente! Um aluno adquiriu seu plano.',
+        type: 'success',
+        userId: result.purchase.professionalId,
+        link: '/professional-dashboard',
+      });
+    }
+
+    return {
+      purchase: result.purchase,
+      paymentId: result.paymentId,
+      paymentUrl: result.paymentUrl,
+      status: result.status,
+      preferenceId: result.preferenceId,
+    };
   } catch (error) {
+    console.error('Error in createPurchaseController:', error);
     throw error;
   }
 }
