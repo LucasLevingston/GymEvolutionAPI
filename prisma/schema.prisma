@@ -26,6 +26,7 @@ model User {
   height               String?
   resetPasswordExpires DateTime?
   role                 String    @default("STUDENT")
+  useGooglePicture     Boolean
 
   bio            String?
   experience     Int?

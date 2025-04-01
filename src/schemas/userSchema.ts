@@ -19,7 +19,6 @@ const professionalSettingsSchema = z.object({
   updatedAt: z.string().or(z.date()).optional(),
 });
 
-// Google connection schema
 const googleConnectionSchema = z.object({
   id: z.string().uuid().optional(),
   userId: z.string().uuid().optional(),
@@ -65,16 +64,13 @@ export const userSchema = z.object({
   googleRefreshToken: z.string().optional(),
   GoogleConnection: googleConnectionSchema.optional(),
 
-  // Settings
   ProfessionalSettings: professionalSettingsSchema.optional(),
 
-  // Related entities
   history: z.array(historySchema).optional(),
   oldWeights: z.array(weightSchema).optional(),
   trainingWeeks: z.array(trainingWeekSchema).optional(),
   diets: z.array(dietSchema).optional(),
 
-  // Other fields
   token: z.string().optional(),
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),

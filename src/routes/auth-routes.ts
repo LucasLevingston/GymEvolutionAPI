@@ -1,15 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { authenticate } from '../middlewares/authenticate';
 import { registerController } from '../controllers/auth/register';
 import { loginController } from '../controllers/auth/login';
 import { passwordRecover } from '../controllers/auth/password-recover';
 import { resetPasswordController } from '../controllers/auth/reset-password';
-import { getCurrentUserController } from '../controllers/auth/get-current-user';
 import { errorResponseSchema } from 'schemas/error-schema';
 import { userResponseSchema, userSchema } from 'schemas/userSchema';
 import { validateTokenController } from 'controllers/auth/validate-token';
+import { getAuthUrl } from 'controllers/auth/auth';
+import { googleCallbackController } from 'controllers/auth/callback';
 
 export async function authRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -56,21 +56,38 @@ export async function authRoutes(app: FastifyInstance) {
 
   server.post(
     '/login',
-    // {
-    //   schema: {
-    //     body: loginSchema,
-    //     response: {
-    //       200: loginResponseSchema,
-    //       401: errorResponseSchema,
-    //       400: errorResponseSchema,
-    //       500: errorResponseSchema,
-    //     },
-    //     tags: ['auth'],
-    //     summary: 'Login a user',
-    //     description: 'Login a user with email and password',
-    //   },
-    // },
+    {
+      schema: {
+        body: loginSchema,
+        tags: ['auth'],
+        summary: 'Login a user',
+        description: 'Login a user with email and password',
+      },
+    },
     loginController
+  );
+  server.get(
+    '/google',
+    {
+      schema: {
+        tags: ['auth'],
+        summary: 'Initiate Google OAuth flow',
+        description: 'Redirects the user to Google for authentication',
+      },
+    },
+    getAuthUrl
+  );
+
+  server.get(
+    '/google/callback',
+    {
+      schema: {
+        tags: ['auth'],
+        summary: 'Handle Google OAuth callback',
+        description: 'Processes the callback from Google OAuth',
+      },
+    },
+    googleCallbackController
   );
 
   const forgotPasswordSchema = z.object({
@@ -125,26 +142,6 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     resetPasswordController
-  );
-
-  server.get(
-    '/me',
-    {
-      onRequest: [authenticate],
-      schema: {
-        response: {
-          200: userResponseSchema,
-          401: errorResponseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['auth'],
-        summary: 'Get current user',
-        description: 'Get the current authenticated user',
-        security: [{ bearerAuth: [] }],
-      },
-    },
-    getCurrentUserController
   );
 
   server.post('/validate-token', validateTokenController);

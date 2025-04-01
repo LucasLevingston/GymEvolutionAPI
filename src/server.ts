@@ -31,6 +31,10 @@ import { hashPassword } from 'utils/jwt';
 import { purchaseRoutes } from 'routes/purchase-routes';
 import { meetingRoutes } from 'routes/meeting-routes';
 import { googleRoutes } from 'routes/google-routes';
+import fastifyCookie from '@fastify/cookie';
+import fastifyMultipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -65,6 +69,17 @@ app.register(fastifySwaggerUi, {
 app.setErrorHandler(errorHandler);
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+app.register(fastifyCookie);
+app.register(fastifyMultipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
+
+app.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
+});
 
 app.register(userRoutes, { prefix: '/users' });
 app.register(authRoutes, { prefix: '/auth' });

@@ -6,8 +6,6 @@ import { getAllUsersController } from '../controllers/user/get-all-users';
 import { getUserByIdController } from '../controllers/user/get-user-by-id';
 import { updateUserController } from '../controllers/user/update-user';
 import { deleteUserController } from '../controllers/user/delete-user';
-import { getAllNutritionistsController } from '../controllers/user/get-all-nutritionists';
-import { getAllTrainersController } from '../controllers/user/get-all-trainers';
 import { assignNutritionistController } from '../controllers/user/assign-nutritionist';
 import { assignTrainerController } from '../controllers/user/assign-trainer';
 import { getNutritionistStudentsController } from '../controllers/user/get-nutritionist-students';
@@ -19,14 +17,7 @@ import { errorResponseSchema } from 'schemas/error-schema';
 export async function userRoutes(app: FastifyInstance) {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
-  server.addHook('onRequest', async (request) => {
-    if (
-      request.originalUrl !== '/users/role/nutritionists' &&
-      request.originalUrl !== '/users/role/trainers'
-    ) {
-      await authenticate(request);
-    }
-  });
+  server.addHook('onRequest', authenticate);
 
   const getAllUsersResponseSchema = z.array(userResponseSchema);
 
@@ -54,13 +45,6 @@ export async function userRoutes(app: FastifyInstance) {
     {
       schema: {
         params: idParamSchema,
-        response: {
-          200: userSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
         tags: ['users'],
         summary: 'Get user by ID',
         description: 'Get a user by ID',
@@ -72,24 +56,16 @@ export async function userRoutes(app: FastifyInstance) {
 
   server.put(
     '/:id',
-    // {
-    //   schema: {
-    //     params: idParamSchema,
-    //     body: z.any(),
-    //     response: {
-    //       200: userSchema,
-    //       401: errorResponseSchema,
-    //       403: errorResponseSchema,
-    //       404: errorResponseSchema,
-    //       400: errorResponseSchema,
-    //       500: errorResponseSchema,
-    //     },
-    //     tags: ['users'],
-    //     summary: 'Update user',
-    //     description: 'Update a user by ID',
-    //     security: [{ bearerAuth: [] }],
-    //   },
-    // },
+    {
+      schema: {
+        params: idParamSchema,
+        body: z.any(),
+        tags: ['users'],
+        summary: 'Update user',
+        description: 'Update a user by ID',
+        security: [{ bearerAuth: [] }],
+      },
+    },
     updateUserController
   );
 
@@ -118,75 +94,6 @@ export async function userRoutes(app: FastifyInstance) {
     deleteUserController
   );
 
-  const getNutritionistsResponseSchema = z.array(
-    z.object({
-      id: z.string().uuid(),
-      name: z.string().nullable(),
-      email: z.string().email(),
-      bio: z.string().nullable(),
-      availability: z.array(z.string()).nullable(),
-      certifications: z.array(z.string()).nullable(),
-      specialties: z.array(z.string()).nullable(),
-      education: z.array(z.string()).nullable(),
-      reviews: z.any().nullable(),
-      imageUrl: z.string().url().nullable(),
-      rating: z.number().min(0).max(5).nullable(),
-      experience: z.number().int().nullable(),
-    })
-  );
-
-  server.get(
-    '/role/nutritionists',
-    {
-      schema: {
-        response: {
-          200: getNutritionistsResponseSchema,
-          401: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['users'],
-        summary: 'Get all nutritionists',
-        description: 'Get all users with the nutritionist role',
-      },
-    },
-    getAllNutritionistsController
-  );
-
-  const getTrainersResponseSchema = z.array(
-    z.object({
-      id: z.string().uuid(),
-      name: z.string().nullable(),
-      email: z.string().email(),
-      bio: z.string().nullable(),
-      availability: z.array(z.string()).nullable(),
-      certifications: z.array(z.string()).nullable(),
-      specialties: z.array(z.string()).nullable(),
-      education: z.array(z.string()).nullable(),
-      reviews: z.any().nullable(),
-      imageUrl: z.string().url().nullable(),
-      rating: z.number().min(0).max(5).nullable(),
-      experience: z.number().int().nullable(),
-    })
-  );
-
-  server.get(
-    '/role/trainers',
-    {
-      schema: {
-        response: {
-          200: getTrainersResponseSchema,
-          401: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['users'],
-        summary: 'Get all trainers',
-        description: 'Get all users with the trainer role',
-      },
-    },
-    getAllTrainersController
-  );
-
-  // Assign nutritionist schema
   const assignNutritionistSchema = z.object({
     studentId: z.string().uuid(),
     nutritionistId: z.string().uuid(),
@@ -223,7 +130,6 @@ export async function userRoutes(app: FastifyInstance) {
     assignNutritionistController
   );
 
-  // Assign trainer schema
   const assignTrainerSchema = z.object({
     studentId: z.string().uuid(),
     trainerId: z.string().uuid(),
@@ -251,7 +157,6 @@ export async function userRoutes(app: FastifyInstance) {
     assignTrainerController
   );
 
-  // Get nutritionist students schema
   const getStudentsResponseSchema = z.array(
     z.object({
       id: z.string().uuid(),
@@ -282,7 +187,6 @@ export async function userRoutes(app: FastifyInstance) {
     getNutritionistStudentsController
   );
 
-  // Get trainer students schema
   server.get(
     '/trainer/students',
     {

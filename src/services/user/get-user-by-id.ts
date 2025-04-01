@@ -1,4 +1,4 @@
-import { prisma } from 'lib/prisma';
+import { prisma } from 'lib/prisma'
 
 export async function getUserByIdService(id: string) {
   return await prisma.user.findUnique({
@@ -21,6 +21,8 @@ export async function getUserByIdService(id: string) {
       role: true,
       height: true,
       ProfessionalSettings: true,
+      imageUrl: true,
+      GoogleConnection: true,
       history: {
         select: {
           id: true,
@@ -116,5 +118,5 @@ export async function getUserByIdService(id: string) {
         },
       },
     },
-  });
+  })
 }

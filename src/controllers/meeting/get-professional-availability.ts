@@ -23,7 +23,6 @@ export async function getProfessionalAvailabilityController(
     const { professionalId } = request.params;
     const { date } = request.query;
 
-    console.log(date);
     if (!professionalId || !date) {
       return reply.code(400).send({
         error: 'Professional ID and date are required',

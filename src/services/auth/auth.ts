@@ -12,3 +12,15 @@ export async function generateAuthUrl(userId: string): Promise<string> {
     redirect_uri: `${BACKEND_URL}/google/callback`,
   });
 }
+
+export async function generateLoginAuthUrl(): Promise<string> {
+  const { BACKEND_URL } = env;
+
+  return oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES,
+    prompt: 'consent',
+    state: 'login',
+    redirect_uri: `${BACKEND_URL}/google/callback`,
+  });
+}

@@ -1,18 +1,17 @@
-import { prisma } from '../../lib/prisma';
-import type { Diet, History, TrainingWeek, User, Weight } from '@prisma/client';
-import { ClientError } from '../../errors/client-error';
+import { prisma } from '../../lib/prisma'
+import type { Diet, History, TrainingWeek, User, Weight } from '@prisma/client'
+import { ClientError } from '../../errors/client-error'
 
 interface UpdateUserData extends User {
-  histories?: History[];
-  oldWeights?: Weight[];
-  trainingWeeks?: TrainingWeek[];
-  diets?: Diet[];
-  ProfessionalSettings?: any;
-  GoogleConnection?: any;
+  histories?: History[]
+  oldWeights?: Weight[]
+  trainingWeeks?: TrainingWeek[]
+  diets?: Diet[]
+  ProfessionalSettings?: any
+  GoogleConnection?: any
 }
 
 export async function updateUserService(updatedUser: UpdateUserData) {
-  // Find the existing user
   const existingUser = await prisma.user.findUnique({
     where: { id: updatedUser.id },
     include: {
@@ -23,18 +22,18 @@ export async function updateUserService(updatedUser: UpdateUserData) {
       ProfessionalSettings: true,
       GoogleConnection: true,
     },
-  });
+  })
 
   if (!existingUser) {
-    throw new ClientError('User not found');
+    throw new ClientError('User not found')
   }
 
   // Sort weights to find the most recent one
   const sortedWeights = [...(updatedUser.oldWeights || [])].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
 
-  const mostRecentWeight = sortedWeights.length > 0 ? sortedWeights[0].weight : null;
+  const mostRecentWeight = sortedWeights.length > 0 ? sortedWeights[0].weight : null
 
   // Update professional settings if provided
   if (updatedUser.ProfessionalSettings) {
@@ -63,7 +62,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
         autoAcceptMeetings: updatedUser.ProfessionalSettings.autoAcceptMeetings,
         timeZone: updatedUser.ProfessionalSettings.timeZone,
       },
-    });
+    })
   }
 
   // Update Google connection if provided
@@ -85,7 +84,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
         expiresAt: updatedUser.GoogleConnection.expiresAt,
         scope: updatedUser.GoogleConnection.scope,
       },
-    });
+    })
   }
 
   // Update the user
@@ -106,6 +105,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
       currentBf: updatedUser.currentBf ?? existingUser.currentBf,
       height: updatedUser.height ?? existingUser.height,
       email: updatedUser.email ?? existingUser.email,
+      imageUrl: updatedUser.imageUrl ?? existingUser.imageUrl,
       // Only update password if provided
       ...(updatedUser.password ? { password: updatedUser.password } : {}),
 
@@ -195,7 +195,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
       ProfessionalSettings: true,
       GoogleConnection: true,
     },
-  });
+  })
 
-  return result;
+  return result
 }

@@ -1,5 +1,5 @@
-import { getAuthUrl } from 'controllers/google-auth/auth';
-import { googleCallbackController } from 'controllers/google-auth/callback';
+import { getAuthUrl } from 'controllers/auth/auth';
+import { googleCallbackController } from 'controllers/auth/callback';
 import { getStatus } from 'controllers/google-auth/get-status';
 import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
