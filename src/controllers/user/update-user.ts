@@ -1,13 +1,11 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { updateUserService } from '../../services/user/update-user'
-import type { User } from '@prisma/client'
 import { ClientError } from '../../errors/client-error'
-import crypto from 'crypto'
 import { s3Client } from 'lib/s3Client'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getUserByIdService } from 'services/user/get-user-by-id'
-import { env } from '@/env'
-// import { addToHistory } from 'services/history/add'
+import { User } from '@prisma/client'
+import { addToHistory } from 'services/history/add'
 
 interface Params {
   id: string
@@ -32,27 +30,23 @@ export async function updateUserController(
       const data = request.body as User
 
       if (data.useGooglePicture) {
-        try {
-          const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: {
-              Authorization: `Bearer ${user?.GoogleConnection?.accessToken}`,
-            },
-          })
+        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: {
+            Authorization: `Bearer ${user?.GoogleConnection?.accessToken}`,
+          },
+        })
 
-          if (!response.ok) {
-            throw new Error(
-              `Error fetching Google picture: ${response.status} ${response.statusText}`
-            )
-          }
+        if (!response.ok) {
+          throw new ClientError(
+            `Error fetching Google picture: ${response.status} ${response.statusText}`
+          )
+        }
 
-          const responseData = await response.json()
-          const photoUrl = responseData.picture
+        const responseData = await response.json()
+        const photoUrl = responseData.picture
 
-          if (photoUrl) {
-            data.imageUrl = photoUrl
-          }
-        } catch (error) {
-          console.error('Error fetching Google picture:', error)
+        if (photoUrl) {
+          data.imageUrl = photoUrl
         }
       }
 
@@ -106,6 +100,7 @@ export async function updateUserController(
             ? String(typedFormFields.currentBf)
             : undefined,
           imageUrl,
+          useGooglePicture: false,
         }
       }
     } else {
@@ -121,20 +116,12 @@ export async function updateUserController(
       }
     }
 
-    if (Object.keys(updateData).length === 0) {
-      throw new ClientError('No data provided for update')
-    }
-
     updateData.id = id
 
     const updatedUser = await updateUserService(updateData as User)
 
     return reply.status(200).send(updatedUser)
   } catch (error) {
-    console.error('Error updating user:', error)
-    if (error instanceof ClientError) {
-      return reply.status(400).send({ error: error.message })
-    }
-    return reply.status(500).send({ error: 'Internal server error' })
+    throw error
   }
 }

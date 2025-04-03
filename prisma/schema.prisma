@@ -26,7 +26,7 @@ model User {
   height               String?
   resetPasswordExpires DateTime?
   role                 String    @default("STUDENT")
-  useGooglePicture     Boolean
+  useGooglePicture     Boolean   @default(false)
 
   bio            String?
   experience     Int?
@@ -169,6 +169,7 @@ model TrainingWeek {
   weekNumber   Int
   trainingDays TrainingDay[]
   startDate    DateTime
+  endDate      DateTime
   information  String?
   isCompleted  Boolean       @default(false)
   user         User          @relation(fields: [userId], references: [id])

@@ -1,17 +1,17 @@
-import { prisma } from '@/lib/prisma';
-import type { Credentials } from 'google-auth-library';
-import { ClientError } from 'errors/client-error';
-import { google } from 'googleapis';
-import { oauth2Client } from 'lib/oauth2Client';
-import { generateToken, hashPassword } from '@/utils/jwt';
-import { randomUUID } from 'crypto';
-import { getUserByIdService } from 'services/user/get-user-by-id';
-import { createHistoryEntry } from 'services/history/create-history-entry';
-import { getUserByEmailService } from 'services/user/get-by-email';
+import { prisma } from '@/lib/prisma'
+import type { Credentials } from 'google-auth-library'
+import { ClientError } from 'errors/client-error'
+import { google } from 'googleapis'
+import { oauth2Client } from 'lib/oauth2Client'
+import { generateToken, hashPassword } from '@/utils/jwt'
+import { randomUUID } from 'crypto'
+import { getUserByIdService } from 'services/user/get-user-by-id'
+import { createHistoryEntry } from 'services/history/create-history-entry'
+import { getUserByEmailService } from 'services/user/get-by-email'
 
 interface CallbackGoogleServiceParams {
-  state: string;
-  tokens: Credentials;
+  state: string
+  tokens: Credentials
 }
 
 export async function callbackGoogleService({
@@ -19,27 +19,27 @@ export async function callbackGoogleService({
   tokens,
 }: CallbackGoogleServiceParams) {
   if (!tokens.access_token) {
-    throw new ClientError('Invalid tokens received from Google');
+    throw new ClientError('Invalid tokens received from Google')
   }
 
-  oauth2Client.setCredentials(tokens);
+  oauth2Client.setCredentials(tokens)
 
   const oauth2 = google.oauth2({
     auth: oauth2Client,
     version: 'v2',
-  });
+  })
 
-  const { data } = await oauth2.userinfo.get();
+  const { data } = await oauth2.userinfo.get()
 
   if (!data.email) {
-    throw new ClientError('Email not provided by Google');
+    throw new ClientError('Email not provided by Google')
   }
 
   if (state === 'login') {
-    let user = await getUserByEmailService(data.email);
+    let user = await getUserByEmailService(data.email)
 
     if (!user) {
-      const hashedPassword = await hashPassword(randomUUID());
+      const hashedPassword = await hashPassword(randomUUID())
 
       user = await prisma.user.create({
         data: {
@@ -60,7 +60,7 @@ export async function callbackGoogleService({
             },
           },
         },
-      });
+      })
     } else {
       await prisma.user.update({
         where: { id: user.id },
@@ -86,25 +86,25 @@ export async function callbackGoogleService({
             },
           },
         },
-      });
+      })
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user.id)
 
-    createHistoryEntry(user.id, 'Logged in with Google');
+    createHistoryEntry(user.id, 'Logged in with Google')
 
     return {
       user,
       token,
       isNewUser: user.createdAt.getTime() === user.updatedAt.getTime(),
-    };
+    }
   }
-  const userId = state;
+  const userId = state
 
-  const user = await getUserByIdService(userId);
+  const user = await getUserByIdService(userId)
 
   if (!user) {
-    throw new ClientError('User not found');
+    throw new ClientError('User not found')
   }
 
   await prisma.user.update({
@@ -113,7 +113,7 @@ export async function callbackGoogleService({
       googleAccessToken: tokens.access_token,
       googleRefreshToken: tokens.refresh_token,
     },
-  });
+  })
 
   const googleConnection = await prisma.googleConnection.upsert({
     where: {
@@ -135,9 +135,9 @@ export async function callbackGoogleService({
       scope: tokens.scope || null,
       tokenType: tokens.token_type || 'Bearer',
     },
-  });
+  })
 
-  createHistoryEntry(user.id, 'Connected Google account');
+  createHistoryEntry(user.id, 'Connected Google account')
 
-  return { googleConnection };
+  return { googleConnection }
 }

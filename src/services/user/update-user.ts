@@ -43,7 +43,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
       },
       create: {
         userId: updatedUser.id,
-        workStartHour: updatedUser.ProfessionalSettings.workStartHour || 9,
+        workStartHour: updatedUser.ProfessionalSettings.workStartHour,
         workEndHour: updatedUser.ProfessionalSettings.workEndHour || 17,
         appointmentDuration: updatedUser.ProfessionalSettings.appointmentDuration || 60,
         workDays: updatedUser.ProfessionalSettings.workDays || '1,2,3,4,5',
@@ -87,6 +87,7 @@ export async function updateUserService(updatedUser: UpdateUserData) {
     })
   }
 
+  console.log(updatedUser.ProfessionalSettings)
   // Update the user
   const result = await prisma.user.update({
     where: { id: updatedUser.id },
@@ -115,6 +116,21 @@ export async function updateUserService(updatedUser: UpdateUserData) {
       specialties: updatedUser.specialties ?? existingUser.specialties,
       certifications: updatedUser.certifications ?? existingUser.certifications,
       education: updatedUser.education ?? existingUser.education,
+
+      ProfessionalSettings: {
+        update: {
+          data: {
+            bufferBetweenSlots: updatedUser.ProfessionalSettings?.bufferBetweenSlots,
+            autoAcceptMeetings: updatedUser.ProfessionalSettings?.autoAcceptMeetings,
+            appointmentDuration: updatedUser.ProfessionalSettings?.appointmentDuration,
+            timeZone: updatedUser.ProfessionalSettings?.timeZone,
+            workDays: updatedUser.ProfessionalSettings?.workDays,
+            workEndHour: updatedUser.ProfessionalSettings?.workEndHour,
+            maxAdvanceBooking: updatedUser.ProfessionalSettings?.maxAdvanceBooking,
+            workStartHour: updatedUser.ProfessionalSettings?.workStartHour,
+          },
+        },
+      },
 
       // Handle related entities
       history: {

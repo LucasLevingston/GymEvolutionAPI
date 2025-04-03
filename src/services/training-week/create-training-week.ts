@@ -1,29 +1,30 @@
-import { prisma } from '../../lib/prisma';
-import { createHistoryEntry } from '../history/create-history-entry';
-import { ClientError } from '../../errors/client-error';
+import { prisma } from '../../lib/prisma'
+import { createHistoryEntry } from '../history/create-history-entry'
 
 interface Exercise {
-  name: string;
-  variation?: string;
-  repetitions: number;
-  sets: number;
-  done?: boolean;
+  name: string
+  variation?: string
+  repetitions: number
+  sets: number
+  isCompleted?: boolean
 }
 
 interface TrainingDay {
-  group: string;
-  dayOfWeek: string;
-  comments?: string;
-  done?: boolean;
-  exercises?: Exercise[];
+  group: string
+  dayOfWeek: string
+  day?: string | Date
+  comments?: string
+  isCompleted?: boolean
+  exercises?: Exercise[]
 }
 
 interface CreateTrainingWeekParams {
-  weekNumber: number;
-  information?: string;
-  userId: string;
-  startDate: Date;
-  trainingDays: TrainingDay[];
+  weekNumber: number
+  information?: string
+  userId: string
+  startDate: Date
+  endDate: Date
+  trainingDays: TrainingDay[]
 }
 
 export async function createTrainingWeek({
@@ -31,34 +32,31 @@ export async function createTrainingWeek({
   information,
   userId,
   startDate,
+  endDate,
   trainingDays,
 }: CreateTrainingWeekParams) {
-  const existingWeek = await prisma.trainingWeek.findFirst({
-    where: {
-      userId,
-      weekNumber,
-    },
-  });
-
-  if (existingWeek) {
-    throw new ClientError('A training week with this number already exists');
-  }
   const trainingWeek = await prisma.trainingWeek.create({
     data: {
       weekNumber,
       information,
       userId,
       startDate,
+      endDate,
       trainingDays: {
         create: trainingDays.map((trainingDay) => {
-          const { exercises, ...trainingDayData } = trainingDay;
+          const { day, ...trainingDayWithoutDay } = trainingDay
 
           return {
-            ...trainingDayData,
+            ...trainingDayWithoutDay,
             exercises: {
-              create: exercises,
+              create: trainingDay.exercises?.map((exercise) => ({
+                name: exercise.name,
+                repetitions: exercise.repetitions,
+                sets: exercise.sets,
+                variation: exercise.variation,
+              })),
             },
-          };
+          }
         }),
       },
     },
@@ -69,9 +67,9 @@ export async function createTrainingWeek({
         },
       },
     },
-  });
+  })
 
-  await createHistoryEntry(userId, `Training week ${weekNumber} created`);
+  await createHistoryEntry(userId, `Training week ${weekNumber} created`)
 
-  return trainingWeek;
+  return trainingWeek
 }

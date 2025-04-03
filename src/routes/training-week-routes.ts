@@ -1,19 +1,19 @@
-import type { FastifyInstance } from 'fastify';
-import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { z } from 'zod';
-import { authenticate } from '../middlewares/authenticate';
-import { idParamSchema } from '../schemas/common-schemas';
-import { createTrainingWeekController } from 'controllers/training-week/create-training-week';
-import { getAllTrainingWeeksController } from 'controllers/training-week/get-all-training-weeks';
-import { getTrainingWeekByIdController } from 'controllers/training-week/get-training-week-by-id';
-import { updateTrainingWeekController } from 'controllers/training-week/update-training-week';
-import { deleteTrainingWeekController } from 'controllers/training-week/delete-training-week';
-import { errorResponseSchema } from 'schemas/error-schema';
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { authenticate } from '../middlewares/authenticate'
+import { idParamSchema } from '../schemas/common-schemas'
+import { createTrainingWeekController } from 'controllers/training-week/create-training-week'
+import { getAllTrainingWeeksController } from 'controllers/training-week/get-all-training-weeks'
+import { getTrainingWeekByIdController } from 'controllers/training-week/get-training-week-by-id'
+import { updateTrainingWeekController } from 'controllers/training-week/update-training-week'
+import { deleteTrainingWeekController } from 'controllers/training-week/delete-training-week'
+import { errorResponseSchema } from 'schemas/error-schema'
 
 export async function trainingWeekRoutes(app: FastifyInstance) {
-  const server = app.withTypeProvider<ZodTypeProvider>();
+  const server = app.withTypeProvider<ZodTypeProvider>()
 
-  server.addHook('onRequest', authenticate);
+  server.addHook('onRequest', authenticate)
 
   const createExerciseSchema = z.object({
     name: z.string(),
@@ -21,24 +21,22 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     repetitions: z.number().int().positive(),
     sets: z.number().int().positive(),
     isCompleted: z.boolean().default(false),
-  });
+  })
 
-  // Create training day schema
   const createTrainingDaySchema = z.object({
     group: z.string(),
     dayOfWeek: z.string(),
     comments: z.string().optional(),
     isCompleted: z.boolean().default(false),
     exercises: z.array(createExerciseSchema).optional(),
-  });
+  })
 
-  // Create training week schema
   const createTrainingWeekSchema = z.object({
     weekNumber: z.number().int().positive(),
     information: z.string().optional(),
     studentId: z.string().uuid().optional(),
     trainingDays: z.array(createTrainingDaySchema).optional(),
-  });
+  })
 
   const trainingWeekResponseSchema = z.object({
     id: z.string().uuid(),
@@ -48,21 +46,21 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     userId: z.string().uuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   server.post(
     '/',
     {
       schema: {
-        body: createTrainingWeekSchema,
-        response: {
-          201: trainingWeekResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          409: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        // body: createTrainingWeekSchema,
+        // response: {
+        //   201: trainingWeekResponseSchema,
+        //   401: errorResponseSchema,
+        //   403: errorResponseSchema,
+        //   409: errorResponseSchema,
+        //   400: errorResponseSchema,
+        //   500: errorResponseSchema,
+        // },
         tags: ['training'],
         summary: 'Create training week',
         description: 'Create a new training week for a user',
@@ -70,12 +68,12 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       },
     },
     createTrainingWeekController
-  );
+  )
 
   // Get all training weeks schema
   const getAllTrainingWeeksQuerySchema = z.object({
     studentId: z.string().uuid().optional(),
-  });
+  })
 
   const trainingDayResponseSchema = z.object({
     id: z.string().uuid(),
@@ -86,13 +84,13 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     trainingWeekId: z.string().uuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   const getAllTrainingWeeksResponseSchema = z.array(
     trainingWeekResponseSchema.extend({
       trainingDays: z.array(trainingDayResponseSchema),
     })
-  );
+  )
 
   server.get(
     '/',
@@ -113,9 +111,8 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       },
     },
     getAllTrainingWeeksController
-  );
+  )
 
-  // Get training week by ID schema
   const serieResponseSchema = z.object({
     id: z.string().uuid(),
     seriesIndex: z.number().nullable(),
@@ -124,7 +121,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     exerciseId: z.string().uuid(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   const exerciseResponseSchema = z.object({
     id: z.string().uuid(),
@@ -137,7 +134,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
     createdAt: z.date(),
     updatedAt: z.date(),
     seriesResults: z.array(serieResponseSchema),
-  });
+  })
 
   const getTrainingWeekByIdResponseSchema = trainingWeekResponseSchema.extend({
     trainingDays: z.array(
@@ -149,7 +146,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       id: z.string().uuid(),
       name: z.string().nullable(),
     }),
-  });
+  })
 
   server.get(
     '/:id',
@@ -170,28 +167,19 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       },
     },
     getTrainingWeekByIdController
-  );
+  )
 
   const updateTrainingWeekSchema = z.object({
     weekNumber: z.number().int().positive().optional(),
     information: z.string().optional(),
     isCompleted: z.boolean().optional(),
-  });
+  })
 
   server.put(
     '/:id',
     {
       schema: {
         params: idParamSchema,
-        body: updateTrainingWeekSchema,
-        response: {
-          200: trainingWeekResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
         tags: ['training'],
         summary: 'Update training week',
         description: 'Update a training week by ID',
@@ -199,11 +187,11 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       },
     },
     updateTrainingWeekController
-  );
+  )
 
   const deleteTrainingWeekResponseSchema = z.object({
     message: z.string(),
-  });
+  })
 
   server.delete(
     '/:id',
@@ -224,5 +212,5 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
       },
     },
     deleteTrainingWeekController
-  );
+  )
 }
