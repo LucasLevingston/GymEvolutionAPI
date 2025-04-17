@@ -41,6 +41,7 @@
     "date-fns": "^4.1.0",
     "fastify": "latest",
     "fastify-type-provider-zod": "latest",
+    "fatsecret": "^1.0.2",
     "google-auth-library": "^9.15.1",
     "googleapis": "^105.0.0",
     "happy-dom": "latest",

@@ -1,17 +1,16 @@
-import type { FastifyRequest, FastifyReply } from 'fastify';
-import { verifyToken } from 'utils/jwt';
+import type { FastifyRequest } from 'fastify'
+import { verifyToken } from 'utils/jwt'
 
 export async function validateTokenController(
-  request: FastifyRequest<{ Body: { token: string } }>,
-  reply: FastifyReply
+  request: FastifyRequest<{ Body: { token: string } }>
 ) {
   try {
-    const { token } = request.body;
+    const { token } = request.body
 
-    const isValid = verifyToken(token);
+    const isValid = verifyToken(token)
 
-    return isValid;
+    return isValid
   } catch (error) {
-    throw error;
+    throw error
   }
 }

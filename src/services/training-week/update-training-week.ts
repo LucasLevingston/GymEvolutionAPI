@@ -26,57 +26,60 @@ export async function updateTrainingWeek(id: string, data: UpdateTrainingWeekPar
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       endDate: data.endDate ? new Date(data.endDate) : undefined,
       trainingDays: {
-        upsert:
-          data.trainingDays?.map((trainingDay) => ({
-            where: { id: trainingDay.id },
-            create: {
-              group: trainingDay.group,
-              dayOfWeek: trainingDay.dayOfWeek,
-              isCompleted: trainingDay.isCompleted,
-              comments: trainingDay.comments,
-              exercises: {
-                create:
-                  trainingDay.exercises?.map((exercise: Exercise) => ({
-                    name: exercise.name,
-                    variation: exercise.variation,
-                    repetitions: exercise.repetitions,
-                    sets: exercise.sets,
-                    isCompleted: exercise.isCompleted,
-                  })) || [],
-              },
+        upsert: data.trainingDays?.map((trainingDay) => ({
+          where: { id: trainingDay.id },
+          create: {
+            group: trainingDay.group,
+            dayOfWeek: trainingDay.dayOfWeek,
+            isCompleted: trainingDay.isCompleted,
+            comments: trainingDay.comments,
+            exercises: {
+              create: trainingDay.exercises?.map((exercise: Exercise) => ({
+                name: exercise.name,
+                variation: exercise.variation,
+                repetitions: exercise.repetitions,
+                sets: exercise.sets,
+                isCompleted: exercise.isCompleted,
+              })),
             },
-            update: {
-              group: trainingDay.group,
-              dayOfWeek: trainingDay.dayOfWeek,
-              isCompleted: trainingDay.isCompleted,
-              comments: trainingDay.comments,
-              exercises: {
-                upsert:
-                  trainingDay.exercises?.map((exercise: Exercise) => ({
-                    where: { id: exercise.id },
-                    create: {
-                      name: exercise.name,
-                      variation: exercise.variation,
-                      repetitions: exercise.repetitions,
-                      sets: exercise.sets,
-                      isCompleted: exercise.isCompleted,
-                    },
-                    update: {
-                      name: exercise.name,
-                      variation: exercise.variation,
-                      repetitions: exercise.repetitions,
-                      sets: exercise.sets,
-                      isCompleted: exercise.isCompleted,
-                    },
-                  })) || [],
-              },
+          },
+          update: {
+            group: trainingDay.group,
+            dayOfWeek: trainingDay.dayOfWeek,
+            isCompleted: trainingDay.isCompleted,
+            comments: trainingDay.comments,
+            exercises: {
+              upsert: trainingDay.exercises?.map((exercise: Exercise) => ({
+                where: { id: exercise.id },
+                create: {
+                  name: exercise.name,
+                  variation: exercise.variation,
+                  repetitions: exercise.repetitions,
+                  sets: exercise.sets,
+                  isCompleted: exercise.isCompleted,
+                },
+                update: {
+                  name: exercise.name,
+                  variation: exercise.variation,
+                  repetitions: exercise.repetitions,
+                  sets: exercise.sets,
+                  isCompleted: exercise.isCompleted,
+                },
+              })),
             },
-          })) || [],
+          },
+        })),
+      },
+    },
+    include: {
+      trainingDays: {
+        include: {
+          exercises: true,
+        },
       },
     },
   })
 
-  // Criação do histórico
   if (existingTrainingWeek) {
     await createHistoryEntry(
       existingTrainingWeek.userId,
@@ -88,6 +91,6 @@ export async function updateTrainingWeek(id: string, data: UpdateTrainingWeekPar
     updatedTrainingWeek.userId,
     `Training week ${updatedTrainingWeek.weekNumber} updated`
   )
-
+  console.log(updatedTrainingWeek.trainingDays[1])
   return updatedTrainingWeek
 }

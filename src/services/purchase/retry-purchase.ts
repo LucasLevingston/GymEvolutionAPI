@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
-import { mercadoPago } from '@/lib/mercadopago';
+import { prisma } from '@/lib/prisma'
+import { mercadoPago } from '@/lib/mercadopago'
 
 export async function retryPaymentService(
   purchaseId: string,
@@ -8,7 +8,6 @@ export async function retryPaymentService(
   cancelUrl: string
 ) {
   return await prisma.$transaction(async (tx) => {
-    // Get the purchase
     const purchase = await tx.purchase.findUnique({
       where: { id: purchaseId },
       include: {
@@ -16,14 +15,14 @@ export async function retryPaymentService(
         professional: true,
         buyer: true,
       },
-    });
+    })
 
     if (!purchase) {
-      throw new Error('Purchase not found');
+      throw new Error('Purchase not found')
     }
 
     if (purchase.status !== 'PENDING') {
-      throw new Error('Only pending purchases can be retried');
+      throw new Error('Only pending purchases can be retried')
     }
 
     const preferenceData = {
@@ -55,15 +54,14 @@ export async function retryPaymentService(
         buyer_id: purchase.buyerId,
         professional_id: purchase.professionalId,
       },
-    };
-
+    }
     // Create preference
     const preference = await mercadoPago.preference.create({
       body: preferenceData,
-    });
+    })
 
     if (!preference || !preference.id) {
-      throw new Error('Failed to create payment preference');
+      throw new Error('Failed to create payment preference')
     }
 
     // Update purchase with new payment information
@@ -72,11 +70,11 @@ export async function retryPaymentService(
       data: {
         paymentMethod,
       },
-    });
+    })
 
     return {
       paymentUrl: preference.init_point,
       preferenceId: preference.id,
-    };
-  });
+    }
+  })
 }

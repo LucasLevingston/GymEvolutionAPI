@@ -15,6 +15,8 @@ const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string(),
   AWS_S3_BUCKET_NAME: z.string(),
   AWS_REGION: z.string(),
+  FATSECRET_CLIENT_ID: z.string(),
+  FATSECRET_CLIENT_SECRET: z.string(),
 })
 
 export const env = {

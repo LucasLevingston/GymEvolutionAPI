@@ -1,21 +1,21 @@
-import { ClientError } from 'errors/client-error';
-import { FastifyRequest } from 'fastify';
-import { PurchaseParams } from 'schemas/purchase-schema';
-import { getPurchaseByIdService } from 'services/purchase/get-by-id';
+import { ClientError } from 'errors/client-error'
+import { FastifyRequest } from 'fastify'
+import { PurchaseParams } from 'schemas/purchase-schema'
+import { getPurchaseByIdService } from 'services/purchase/get-by-id'
 
 export async function getPurchaseByIdController(
   request: FastifyRequest<{ Params: PurchaseParams }>
 ) {
   try {
-    const { id } = request.params;
-    const purchase = await getPurchaseByIdService(id);
+    const { id } = request.params
+    const purchase = await getPurchaseByIdService(id)
 
     if (!purchase) {
-      throw new ClientError('Purchase not found');
+      throw new ClientError('Purchase not found')
     }
 
-    return purchase;
+    return purchase
   } catch (error) {
-    throw error;
+    throw error
   }
 }

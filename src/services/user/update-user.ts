@@ -132,7 +132,6 @@ export async function updateUserService(updatedUser: UpdateUserData) {
         },
       },
 
-      // Handle related entities
       history: {
         upsert: updatedUser.histories?.map((history) => ({
           where: { id: history.id || 'new-id' },

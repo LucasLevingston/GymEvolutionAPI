@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 export async function getProfessionalByIdService(id: string) {
   const user = await prisma.user.findUnique({
@@ -8,17 +8,11 @@ export async function getProfessionalByIdService(id: string) {
     include: {
       ProfessionalSettings: true,
     },
-  });
+  })
 
   if (!user || (user.role !== 'NUTRITIONIST' && user.role !== 'TRAINER')) {
-    return null;
+    return null
   }
-
-  const specialties = user.specialties ? JSON.parse(user.specialties) : [];
-  const certifications = user.certifications ? JSON.parse(user.certifications) : [];
-  const education = user.education ? JSON.parse(user.education) : [];
-  const availability = user.availability ? JSON.parse(user.availability) : [];
-  const reviews = user.reviews ? JSON.parse(user.reviews) : [];
 
   return {
     id: user.id,
@@ -33,10 +27,10 @@ export async function getProfessionalByIdService(id: string) {
     experience: user.experience,
     rating: user.rating,
     professionalSettings: user.ProfessionalSettings,
-    specialties,
-    certifications,
-    education,
-    availability,
-    reviews,
-  };
+    specialties: user.specialties ? user.specialties.split(',') : [],
+    certifications: user.certifications ? JSON.parse(user.certifications) : [],
+    education: user.education ? JSON.parse(user.education) : [],
+    availability: user.availability ? user.availability.split(',') : [],
+    reviews: user.reviews ? JSON.parse(user.reviews) : [],
+  }
 }

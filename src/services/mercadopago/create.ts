@@ -1,15 +1,15 @@
-import { mercadoPago } from '../../lib/mercadopago';
+import { mercadoPago } from '../../lib/mercadopago'
 
 interface CreatePaymentParams {
-  purchaseId: string;
-  amount: number;
-  description: string;
-  successUrl: string;
-  cancelUrl: string;
-  customerName: string;
-  professionalId: string;
-  buyerId: string;
-  planId: string;
+  purchaseId: string
+  amount: number
+  description: string
+  successUrl: string
+  cancelUrl: string
+  customerName: string
+  professionalId: string
+  buyerId: string
+  planId: string
 }
 
 export async function createPaymentService({
@@ -18,13 +18,11 @@ export async function createPaymentService({
   description,
   successUrl,
   cancelUrl,
-  customerName,
   professionalId,
   buyerId,
   planId,
 }: CreatePaymentParams) {
   try {
-    // Create a preference with MercadoPago
     const preference = {
       items: [
         {
@@ -52,9 +50,9 @@ export async function createPaymentService({
         excluded_payment_types: [],
         installments: 12,
       },
-    };
+    }
 
-    const response = await mercadoPago.preference.create({ body: preference });
+    const response = await mercadoPago.preference.create({ body: preference })
 
     // Return payment information
     return {
@@ -63,8 +61,8 @@ export async function createPaymentService({
       preferenceId: response.id,
       status: 'PENDING',
       paymentMethod: 'mercadopago', // Will be updated when payment is completed
-    };
+    }
   } catch (error) {
-    throw error;
+    throw error
   }
 }

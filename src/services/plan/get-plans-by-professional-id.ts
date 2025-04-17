@@ -1,7 +1,7 @@
-import { prisma } from 'lib/prisma';
+import { prisma } from 'lib/prisma'
 
 export async function getPlansByProfessionalIdService(professionalId: string) {
-  const plans = await prisma.plan.findMany({
+  return await prisma.plan.findMany({
     where: {
       professionalId,
       isActive: true,
@@ -9,10 +9,9 @@ export async function getPlansByProfessionalIdService(professionalId: string) {
     orderBy: {
       price: 'asc',
     },
-  });
-
-  return plans.map((plan) => ({
-    ...plan,
-    features: JSON.parse(plan.features),
-  }));
+    include: {
+      features: true,
+      professional: true,
+    },
+  })
 }

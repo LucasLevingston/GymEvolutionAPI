@@ -38,6 +38,12 @@ model User {
   availability   String?
   reviews        String?
 
+  approvalStatus  String?    @default("NOTSOLICITED") // NOTSOLICITED, APPROVED, REJECTED, WAITING
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  documents       Document[]
+
   plans                  Plan[]    @relation("ProfessionalToPlans")
   meetingsAsProfessional Meeting[] @relation("ProfessionalToMeetings")
   meetingsAsStudent      Meeting[] @relation("StudentToMeetings")
@@ -65,6 +71,20 @@ model User {
   ProfessionalSettings    ProfessionalSettings?
 
   @@map("users")
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  url         String
+  type        String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("documents")
 }
 
 model ProfessionalSettings {
@@ -101,13 +121,14 @@ model GoogleConnection {
 }
 
 model Plan {
-  id          String  @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String?
   price       Float
   duration    Int
-  features    String
-  isActive    Boolean @default(true)
+  features    Feature[]
+  isActive    Boolean   @default(true)
+  metadata    String?
 
   professional   User   @relation("ProfessionalToPlans", fields: [professionalId], references: [id])
   professionalId String
@@ -118,6 +139,31 @@ model Plan {
   updatedAt DateTime @updatedAt
 
   @@map("plans")
+}
+
+model Feature {
+  id   String @id @default(uuid())
+  name String
+
+  isTrainingWeek Boolean @default(false)
+  trainingWeekId String?
+
+  isDiet Boolean @default(false)
+  dietId String?
+
+  isFeedback Boolean @default(false)
+  feedback   String
+
+  isConsultation        Boolean @default(false)
+  consultationMeetingId String
+
+  isReturn        Boolean @default(false)
+  returnMeetingId String
+
+  linkToResolve String?
+
+  Plan   Plan?   @relation(fields: [planId], references: [id])
+  planId String?
 }
 
 model Relationship {
@@ -317,7 +363,7 @@ model Purchase {
   paymentMethod String?
   paymentId     String?
 
-  status String @default("WAITINGPAYMENT")
+  status String @default("WAITINGPAYMENT") // WAITINGPAYMENT, ACTIVE, COMPLETED, CANCELLED
 
   cancelReason  String?
   cancelComment String?

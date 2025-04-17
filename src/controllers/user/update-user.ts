@@ -6,11 +6,12 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getUserByIdService } from 'services/user/get-user-by-id'
 import { User } from '@prisma/client'
 import { addToHistory } from 'services/history/add'
+import { env } from '@/env'
 
 interface Params {
   id: string
 }
-
+const { AWS_S3_BUCKET_NAME, AWS_REGION } = env
 export async function updateUserController(
   request: FastifyRequest<{
     Params: Params
@@ -63,7 +64,7 @@ export async function updateUserController(
         const fileBuffer = await data.toBuffer()
 
         const params = {
-          Bucket: process.env.AWS_S3_BUCKET_NAME as string,
+          Bucket: AWS_S3_BUCKET_NAME,
           Key: userId,
           Body: fileBuffer,
           ContentType: data.mimetype,
@@ -72,9 +73,7 @@ export async function updateUserController(
         const command = new PutObjectCommand(params)
         await s3Client.send(command)
 
-        const region = process.env.AWS_REGION || 'us-east-1'
-        const bucketName = process.env.AWS_S3_BUCKET_NAME
-        const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${userId}`
+        const imageUrl = `https://${AWS_S3_BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${userId}`
 
         const formFields: Record<string, any> = {}
         for (const [key, value] of Object.entries(data.fields)) {
