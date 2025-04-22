@@ -33,19 +33,20 @@ export async function searchFoodsController(
       url.searchParams.append('generic_description', 'portion')
     }
 
-    // Make the API request with the access token
     const response = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: 'application/json',
       },
     })
+
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`FatSecret API error: ${response.status} ${errorText}`)
     }
 
     const data = await response.json()
+
     return reply.send(data)
   } catch (error) {
     console.error('Error searching foods:', error)

@@ -1,43 +1,47 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import { getAllDiets } from '../../services/diet/get-all-diets';
-import { isProfessionalAssignedToStudent } from '../../services/training-week/is-professional-assigned-to-student';
-import { User } from '@prisma/client';
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import { getAllDiets } from '../../services/diet/get-all-diets'
+import { isProfessionalAssignedToStudent } from '../../services/training-week/is-professional-assigned-to-student'
+import { User } from '@prisma/client'
 
 interface Querystring {
-  studentId?: string;
+  studentId?: string
 }
 
 export async function getAllDietsController(
   request: FastifyRequest<{
-    Querystring: Querystring;
+    Querystring: Querystring
   }>,
   reply: FastifyReply
 ) {
-  const { id: userId, role } = request.user as User;
-  const { studentId } = request.query;
+  try {
+    const { id: userId, role } = request.user as User
+    const { studentId } = request.query
 
-  // Determine the target user ID
-  let targetUserId = userId;
+    // Determine the target user ID
+    let targetUserId = userId
 
-  // If a nutritionist is viewing a student's diets
-  if (role === 'NUTRITIONIST' && studentId) {
-    // Check if the nutritionist is assigned to this student
-    const isAssigned = await isProfessionalAssignedToStudent(
-      userId,
-      studentId,
-      'NUTRITIONIST'
-    );
+    // If a nutritionist is viewing a student's diets
+    if (role === 'NUTRITIONIST' && studentId) {
+      // Check if the nutritionist is assigned to this student
+      const isAssigned = await isProfessionalAssignedToStudent(
+        userId,
+        studentId,
+        'NUTRITIONIST'
+      )
 
-    if (!isAssigned) {
-      return reply.status(403).send({ message: 'You are not assigned to this student' });
+      if (!isAssigned) {
+        return reply.status(403).send({ message: 'You are not assigned to this student' })
+      }
+
+      targetUserId = studentId
+    } else if (studentId && role === 'STUDENT') {
+      return reply.status(403).send({ message: 'Students can only view their own diets' })
     }
 
-    targetUserId = studentId;
-  } else if (studentId && role === 'STUDENT') {
-    return reply.status(403).send({ message: 'Students can only view their own diets' });
+    const diets = await getAllDiets(targetUserId)
+
+    return reply.send(diets)
+  } catch (error) {
+    throw error
   }
-
-  const diets = await getAllDiets(targetUserId);
-
-  return reply.send(diets);
 }

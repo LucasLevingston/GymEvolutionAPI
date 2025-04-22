@@ -25,7 +25,6 @@ export async function updateTrainingWeekController(
   const { id } = request.params
   const { id: userId, role } = request.user as User
   const updateData = request.body
-  console.log(updateData)
 
   const trainingWeek = await getTrainingWeekById(id)
 

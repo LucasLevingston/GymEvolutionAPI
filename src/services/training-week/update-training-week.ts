@@ -91,6 +91,5 @@ export async function updateTrainingWeek(id: string, data: UpdateTrainingWeekPar
     updatedTrainingWeek.userId,
     `Training week ${updatedTrainingWeek.weekNumber} updated`
   )
-  console.log(updatedTrainingWeek.trainingDays[1])
   return updatedTrainingWeek
 }

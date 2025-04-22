@@ -1,4 +1,4 @@
-import { prisma } from 'lib/prisma';
+import { prisma } from 'lib/prisma'
 
 export async function getPurchaseByIdService(id: string) {
   return prisma.purchase.findUnique({
@@ -6,8 +6,8 @@ export async function getPurchaseByIdService(id: string) {
     include: {
       buyer: true,
       professional: true,
-      Plan: true,
+      Plan: { include: { features: true } },
       relationship: true,
     },
-  });
+  })
 }

@@ -32,19 +32,7 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
             name: true,
             price: true,
             duration: true,
-            features: {
-              select: {
-                id: true,
-                name: true,
-                isTrainingWeek: true,
-                isDiet: true,
-                isFeedback: true,
-                isConsultation: true,
-                isReturn: true,
-                feedback: true,
-                linkToResolve: true,
-              },
-            },
+            features: true,
           },
         },
         Meeting: {
@@ -63,23 +51,19 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
       },
     })
 
-    // Map to store client data
     const clientMap = new Map()
 
-    // Process purchases to build client data
     for (const purchase of purchases) {
       const { buyer } = purchase
 
       if (!buyer) continue
 
-      // If client doesn't exist in map or this purchase is more recent than the stored one
       if (
         !clientMap.has(buyer.id) ||
         purchase.createdAt > clientMap.get(buyer.id).latestPurchaseDate
       ) {
         const isActive = purchase.status === 'ACTIVE'
 
-        // Initialize client with data from most recent purchase
         clientMap.set(buyer.id, {
           id: buyer.id,
           name: buyer.name || 'Cliente sem nome',
@@ -98,13 +82,11 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
           isActive: isActive,
           totalSpent: 0,
           purchaseCount: 0,
-          tasks: [], // Initialize empty tasks array
+          tasks: [],
         })
       }
     }
 
-    // Calculate total spent and purchase count for each client
-    // And add tasks from plan features
     for (const purchase of purchases) {
       const { buyer } = purchase
       if (!buyer) continue
@@ -114,19 +96,18 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
         clientData.totalSpent += purchase.amount || 0
         clientData.purchaseCount += 1
 
-        // Only add tasks from active purchases
         if (purchase.status === 'ACTIVE' && purchase.Plan?.features) {
-          // Convert plan features to tasks
           for (const feature of purchase.Plan.features) {
-            const taskStatus = 'PENDING'
+            let taskStatus = 'PENDING'
+            taskStatus = 'PENDING'
             let taskTitle = feature.name
             let taskDescription = ''
-
-            // Determine task type and status based on feature type
             if (feature.isTrainingWeek) {
+              if (feature.trainingWeekId) taskStatus = 'COMPLETED'
               taskTitle = `Treino: ${feature.name}`
               taskDescription = 'Plano de treino a ser realizado'
             } else if (feature.isDiet) {
+              if (feature.dietId) taskStatus = 'COMPLETED'
               taskTitle = `Dieta: ${feature.name}`
               taskDescription = 'Plano alimentar a ser seguido'
             } else if (feature.isFeedback) {
@@ -140,7 +121,6 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
               taskDescription = 'Consulta de retorno a ser agendada'
             }
 
-            // Add task to client's tasks array
             clientData.tasks.push({
               id: feature.id,
               type: feature.isTrainingWeek
@@ -157,7 +137,7 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
               title: taskTitle,
               description: taskDescription,
               status: taskStatus,
-              dueDate: null, // Features don't have due dates in the schema
+              dueDate: null,
               linkToResolve: feature.linkToResolve,
             })
           }
@@ -181,7 +161,7 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
 
     // Convert map values to array
     const clients = Array.from(clientMap.values())
-
+    console.log(clients)
     return clients
   } catch (error) {
     console.error('Error in getClientsByProfessionalIdService:', error)

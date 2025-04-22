@@ -5,7 +5,7 @@ export async function getPurchasesByProfessionalIdService(id: string) {
     where: { professionalId: id },
     include: {
       professional: true,
-      Plan: true,
+      Plan: { include: { features: true } },
       buyer: true,
     },
   })

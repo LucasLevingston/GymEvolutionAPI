@@ -1,34 +1,34 @@
-import type { FastifyRequest } from 'fastify';
-import { getUserByIdService } from '../../services/user/get-user-by-id';
-import { ClientError } from '../../errors/client-error';
-import { User } from '@prisma/client';
+import type { FastifyRequest } from 'fastify'
+import { getUserByIdService } from '../../services/user/get-user-by-id'
+import { ClientError } from '../../errors/client-error'
+import { User } from '@prisma/client'
 
 interface Params {
-  id: string;
+  id: string
 }
 
 export async function getUserByIdController(
   request: FastifyRequest<{
-    Params: Params;
+    Params: Params
   }>
 ) {
   try {
-    const { id } = request.params;
+    const { id } = request.params
 
-    const { id: userId, role } = request.user as User;
+    const { id: userId, role } = request.user as User
 
     if (id !== userId && role === 'STUDENT') {
-      throw new ClientError('Forbidden');
+      throw new ClientError('Forbidden')
     }
 
-    const userData = await getUserByIdService(id);
+    const userData = await getUserByIdService(id)
 
     if (!userData) {
-      throw new ClientError('User not found');
+      throw new ClientError('User not found')
     }
 
-    return userData;
+    return userData
   } catch (error) {
-    throw error;
+    throw error
   }
 }

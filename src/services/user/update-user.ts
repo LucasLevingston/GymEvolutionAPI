@@ -87,7 +87,6 @@ export async function updateUserService(updatedUser: UpdateUserData) {
     })
   }
 
-  console.log(updatedUser.ProfessionalSettings)
   // Update the user
   const result = await prisma.user.update({
     where: { id: updatedUser.id },

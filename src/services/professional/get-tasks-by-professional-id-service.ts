@@ -41,50 +41,32 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
       let taskDescription = ''
       let dueDate = null
 
-      // Determine task type and details based on feature type
       if (feature.isTrainingWeek) {
         taskType = 'TRAINING'
         taskTitle = 'Create Training Plan'
         taskDescription = 'Create a training plan for the client'
 
-        // Check if there's already a training week for this feature
         if (feature.trainingWeekId) {
-          const trainingWeek = await prisma.trainingWeek.findUnique({
-            where: { id: feature.trainingWeekId },
-          })
-
-          if (trainingWeek) {
-            taskStatus = trainingWeek.isCompleted ? 'COMPLETED' : 'IN_PROGRESS'
-          }
+          taskStatus = 'COMPLETED'
         }
       } else if (feature.isDiet) {
         taskType = 'DIET'
         taskTitle = 'Create Diet Plan'
         taskDescription = 'Create a diet plan for the client'
 
-        // Check if there's already a diet for this feature
         if (feature.dietId) {
-          const diet = await prisma.diet.findUnique({
-            where: { id: feature.dietId },
-          })
-
-          if (diet) {
-            taskStatus = 'COMPLETED'
-          } else {
-            taskStatus = 'PENDING'
-          }
+          taskStatus = 'COMPLETED'
         }
       } else if (feature.isFeedback) {
         taskType = 'FEEDBACK'
         taskTitle = 'Provide Feedback'
         taskDescription = feature.feedback || 'Provide feedback to the client'
-        taskStatus = 'PENDING' // We'd need additional logic to determine if feedback was given
-      } else if (feature.isConsultation) {
+        taskStatus = 'PENDING'
+      } else if (feature.isConsultation && !feature.consultationMeetingId) {
         taskType = 'CONSULTATION'
         taskTitle = 'Initial Consultation'
         taskDescription = 'Schedule or conduct initial consultation with client'
 
-        // Check if there's a meeting for this consultation
         if (feature.consultationMeetingId) {
           const meeting = await prisma.meeting.findUnique({
             where: { id: feature.consultationMeetingId },
@@ -93,13 +75,12 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
           if (meeting) {
             taskStatus = meeting.status === 'COMPLETED' ? 'COMPLETED' : 'IN_PROGRESS'
 
-            // Set due date if meeting is scheduled
             if (meeting.startTime) {
               dueDate = meeting.startTime.toISOString()
             }
           }
         }
-      } else if (feature.isReturn) {
+      } else if (feature.isReturn && !feature.returnMeetingId) {
         taskType = 'RETURN'
         taskTitle = 'Follow-up Meeting'
         taskDescription = 'Schedule or conduct follow-up meeting with client'
@@ -120,11 +101,8 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
           }
         }
       } else {
-        // Skip features that don't map to tasks
         continue
       }
-
-      // Create the task object
       tasks.push({
         id: feature.id,
         type: taskType,

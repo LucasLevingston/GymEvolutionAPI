@@ -1,122 +1,47 @@
 import { prisma } from 'lib/prisma'
+import { getClientsByProfessionalIdService } from 'services/professional/get-clients-by-professional-id'
+import { getTasksByProfessionalIdService } from 'services/professional/get-tasks-by-professional-id-service'
 
 export async function getUserByIdService(id: string) {
-  return await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      sex: true,
-      street: true,
-      number: true,
-      zipCode: true,
-      city: true,
-      state: true,
-      birthDate: true,
-      phone: true,
-      currentWeight: true,
-      password: false,
-      currentBf: true,
-      role: true,
-      height: true,
-      ProfessionalSettings: true,
-      imageUrl: true,
-      GoogleConnection: true,
-      history: {
-        select: {
-          id: true,
-          event: true,
-          date: true,
-        },
-      },
-      oldWeights: {
-        select: {
-          id: true,
-          weight: true,
-          date: true,
-          bf: true,
-        },
-      },
+    include: {
+      history: true,
+      oldWeights: true,
       trainingWeeks: {
-        select: {
-          id: true,
-          weekNumber: true,
-          isCompleted: true,
-          information: true,
-          userId: true,
+        include: {
           trainingDays: {
-            select: {
-              id: true,
-              group: true,
-              dayOfWeek: true,
-              isCompleted: true,
-              comments: true,
+            include: {
               exercises: {
-                select: {
-                  id: true,
-                  name: true,
-                  variation: true,
-                  repetitions: true,
-                  sets: true,
-                  isCompleted: true,
-                  seriesResults: {
-                    select: {
-                      id: true,
-                      seriesIndex: true,
-                      repetitions: true,
-                      weight: true,
-                    },
-                  },
+                include: {
+                  seriesResults: true,
                 },
               },
             },
           },
         },
       },
+      plans: true,
+      meetingsAsProfessional: true,
+      meetingsAsStudent: true,
+      nutritionistRelation: true,
+      ProfessionalSettings: true,
+      trainerRelation: true,
       diets: {
-        select: {
-          id: true,
-          weekNumber: true,
-          totalCalories: true,
-          totalProtein: true,
-          totalCarbohydrates: true,
-          totalFat: true,
-          isCurrent: true,
+        include: {
           meals: {
-            select: {
-              id: true,
-              name: true,
-              calories: true,
-              protein: true,
-              carbohydrates: true,
-              fat: true,
-              mealType: true,
-              createdAt: true,
-              updatedAt: true,
-              isCompleted: true,
-              day: true,
-              hour: true,
-              mealItems: {
-                select: {
-                  calories: true,
-                  carbohydrates: true,
-                  id: true,
-                  name: true,
-                  protein: true,
-                  quantity: true,
-                  fat: true,
-                  isCompleted: true,
-                  originalItemId: true,
-                  substitutions: true,
-                  quantityType: true,
-                  originalItem: true,
-                },
-              },
-            },
+            include: { mealItems: true },
           },
         },
       },
     },
   })
+  let tasks = []
+  let clients = []
+  if (user?.role === 'NUTRITIONIST' || user?.role === 'TRAINER') {
+    tasks = await getTasksByProfessionalIdService(id)
+    clients = await getClientsByProfessionalIdService(id)
+  }
+  console.log(clients)
+  return { ...user, tasks, clients }
 }

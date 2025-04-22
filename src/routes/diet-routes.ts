@@ -1,19 +1,19 @@
-import type { FastifyInstance } from 'fastify';
-import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { z } from 'zod';
-import { authenticate } from '../middlewares/authenticate';
-import { idParamSchema } from '../schemas/common-schemas';
-import { createDietController } from '../controllers/diet/create-diet';
-import { getAllDietsController } from '../controllers/diet/get-all-diets';
-import { getDietByIdController } from '../controllers/diet/get-diet-by-id';
-import { updateDietController } from '../controllers/diet/update-diet';
-import { deleteDietController } from '../controllers/diet/delete-diet';
-import { errorResponseSchema } from '../schemas/error-schema';
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { z } from 'zod'
+import { authenticate } from '../middlewares/authenticate'
+import { idParamSchema } from '../schemas/common-schemas'
+import { createDietController } from '../controllers/diet/create-diet'
+import { getAllDietsController } from '../controllers/diet/get-all-diets'
+import { getDietByIdController } from '../controllers/diet/get-diet-by-id'
+import { updateDietController } from '../controllers/diet/update-diet'
+import { deleteDietController } from '../controllers/diet/delete-diet'
+import { errorResponseSchema } from '../schemas/error-schema'
 
 export async function dietRoutes(app: FastifyInstance) {
-  const server = app.withTypeProvider<ZodTypeProvider>();
+  const server = app.withTypeProvider<ZodTypeProvider>()
 
-  server.addHook('onRequest', authenticate);
+  server.addHook('onRequest', authenticate)
 
   const createDietSchema = z.object({
     weekNumber: z.number().int().positive(),
@@ -22,7 +22,7 @@ export async function dietRoutes(app: FastifyInstance) {
     totalCarbohydrates: z.number().optional(),
     totalFat: z.number().optional(),
     studentId: z.string().uuid().optional(),
-  });
+  })
 
   const dietResponseSchema = z.object({
     id: z.string().uuid(),
@@ -34,33 +34,33 @@ export async function dietRoutes(app: FastifyInstance) {
     userId: z.string().uuid().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   server.post(
     '/',
-    {
-      schema: {
-        body: createDietSchema,
-        response: {
-          201: dietResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          409: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['diet'],
-        summary: 'Create diet',
-        description: 'Create a new diet for a user',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     body: createDietSchema,
+    //     response: {
+    //       201: dietResponseSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       409: errorResponseSchema,
+    //       400: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['diet'],
+    //     summary: 'Create diet',
+    //     description: 'Create a new diet for a user',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     createDietController
-  );
+  )
 
   const getAllDietsQuerySchema = z.object({
     studentId: z.string().uuid().optional(),
-  });
+  })
 
   const mealResponseSchema = z.object({
     id: z.string().uuid(),
@@ -77,13 +77,13 @@ export async function dietRoutes(app: FastifyInstance) {
     dietId: z.string().uuid().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   const getAllDietsResponseSchema = z.array(
     dietResponseSchema.extend({
       meals: z.array(mealResponseSchema),
     })
-  );
+  )
 
   server.get(
     '/',
@@ -104,7 +104,7 @@ export async function dietRoutes(app: FastifyInstance) {
       },
     },
     getAllDietsController
-  );
+  )
 
   // Get diet by ID schema
   const mealItemResponseSchema = z.object({
@@ -122,7 +122,7 @@ export async function dietRoutes(app: FastifyInstance) {
     mealId: z.string().uuid().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
-  });
+  })
 
   const getDietByIdResponseSchema = dietResponseSchema.extend({
     meals: z.array(
@@ -134,28 +134,28 @@ export async function dietRoutes(app: FastifyInstance) {
         ),
       })
     ),
-  });
+  })
 
   server.get(
     '/:id',
-    {
-      schema: {
-        params: idParamSchema,
-        response: {
-          200: getDietByIdResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['diet'],
-        summary: 'Get diet by ID',
-        description: 'Get a diet by ID',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     params: idParamSchema,
+    //     response: {
+    //       200: getDietByIdResponseSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       404: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['diet'],
+    //     summary: 'Get diet by ID',
+    //     description: 'Get a diet by ID',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     getDietByIdController
-  );
+  )
 
   // Define a recursive schema for meal items with substitutions
   const mealItemSchema: any = z.object({
@@ -170,12 +170,12 @@ export async function dietRoutes(app: FastifyInstance) {
     isCompleted: z.boolean().optional(),
     isSubstitution: z.boolean().optional(),
     originalItemId: z.string().nullable().optional(),
-  });
+  })
 
   // Add the recursive substitutions property
   mealItemSchema.extend({
     substitutions: z.array(mealItemSchema).optional(),
-  });
+  })
 
   const mealSchema = z.object({
     id: z.string(), // Changed from z.string().uuid().optional()
@@ -189,7 +189,7 @@ export async function dietRoutes(app: FastifyInstance) {
     hour: z.string(),
     isCompleted: z.boolean().optional(),
     mealItems: z.array(mealItemSchema).optional(),
-  });
+  })
 
   const updateDietSchema = z.object({
     weekNumber: z.number().int().positive().optional(),
@@ -198,34 +198,34 @@ export async function dietRoutes(app: FastifyInstance) {
     totalCarbohydrates: z.number().optional(),
     totalFat: z.number().optional(),
     meals: z.array(mealSchema).optional(),
-  });
+  })
 
   server.put(
     '/:id',
-    {
-      schema: {
-        params: idParamSchema,
-        body: updateDietSchema,
-        response: {
-          200: getDietByIdResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['diet'],
-        summary: 'Update diet',
-        description: 'Update a diet by ID',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     params: idParamSchema,
+    //     body: updateDietSchema,
+    //     response: {
+    //       200: getDietByIdResponseSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       404: errorResponseSchema,
+    //       400: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['diet'],
+    //     summary: 'Update diet',
+    //     description: 'Update a diet by ID',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     updateDietController
-  );
+  )
 
   const deleteDietResponseSchema = z.object({
     message: z.string(),
-  });
+  })
 
   server.delete(
     '/:id',
@@ -246,5 +246,5 @@ export async function dietRoutes(app: FastifyInstance) {
       },
     },
     deleteDietController
-  );
+  )
 }

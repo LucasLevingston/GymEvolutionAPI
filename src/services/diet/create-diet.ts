@@ -1,37 +1,37 @@
-import { prisma } from '../../lib/prisma';
-import { createHistoryEntry } from '../history/create-history-entry';
-import { ClientError } from '../../errors/client-error';
+import { prisma } from '../../lib/prisma'
+import { createHistoryEntry } from '../history/create-history-entry'
+import { ClientError } from '../../errors/client-error'
 
 interface MealItemInput {
-  name: string;
-  quantity: number;
-  calories?: number;
-  protein?: number;
-  carbohydrates?: number;
-  fat?: number;
+  name: string
+  quantity: number
+  calories?: number
+  protein?: number
+  carbohydrates?: number
+  fat?: number
 }
 
 interface MealInput {
-  name: string;
-  day: number;
-  hour: string;
-  calories?: number;
-  protein?: number;
-  carbohydrates?: number;
-  fat?: number;
-  mealType?: string;
-  servingSize?: string;
-  mealItems?: MealItemInput[];
+  name: string
+  day: number
+  hour: string
+  calories?: number
+  protein?: number
+  carbohydrates?: number
+  fat?: number
+  mealType?: string
+  servingSize?: string
+  mealItems?: MealItemInput[]
 }
 
 interface CreateDietParams {
-  weekNumber: number;
-  totalCalories?: number;
-  totalProtein?: number;
-  totalCarbohydrates?: number;
-  totalFat?: number;
-  userId: string;
-  meals?: MealInput[];
+  weekNumber: number
+  totalCalories?: number
+  totalProtein?: number
+  totalCarbohydrates?: number
+  totalFat?: number
+  userId: string
+  meals?: MealInput[]
 }
 
 export async function createDiet({
@@ -43,17 +43,6 @@ export async function createDiet({
   userId,
   meals = [],
 }: CreateDietParams) {
-  const existingDiet = await prisma.diet.findFirst({
-    where: {
-      userId,
-      weekNumber,
-    },
-  });
-
-  if (existingDiet) {
-    throw new ClientError('A diet with this week number already exists');
-  }
-
   const diet = await prisma.diet.create({
     data: {
       weekNumber,
@@ -96,12 +85,12 @@ export async function createDiet({
         },
       },
     },
-  });
+  })
 
   await createHistoryEntry(
     userId,
     `Diet for week ${weekNumber} created with ${meals.length} meals`
-  );
+  )
 
-  return diet;
+  return diet
 }

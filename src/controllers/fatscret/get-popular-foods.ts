@@ -21,9 +21,8 @@ export async function getPopularFoodsController(
 
     const url = new URL('https://platform.fatsecret.com/rest/server.api')
 
-    url.searchParams.append('method', 'foods.get_most_popular')
+    url.searchParams.append('method', 'foods.popular')
     url.searchParams.append('format', 'json')
-
     if (max_results) url.searchParams.append('max_results', max_results)
     if (region) url.searchParams.append('region', region)
     if (language) url.searchParams.append('language', language)
@@ -39,8 +38,8 @@ export async function getPopularFoodsController(
       const errorText = await response.text()
       throw new Error(`FatSecret API error: ${response.status} ${errorText}`)
     }
-
     const data = await response.json()
+
     return reply.send(data)
   } catch (error) {
     throw error
