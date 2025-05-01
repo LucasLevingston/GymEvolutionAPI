@@ -1,6 +1,9 @@
 import { prisma } from 'lib/prisma'
+import { Client } from 'types/client-type'
 
-export async function getClientsByProfessionalIdService(professionalId: string) {
+export async function getClientsByProfessionalIdService(
+  professionalId: string
+): Promise<Client[]> {
   try {
     if (!professionalId) {
       throw new Error('Professional ID is required')
@@ -11,21 +14,7 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
         professionalId: professionalId,
       },
       include: {
-        buyer: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            sex: true,
-            birthDate: true,
-            currentWeight: true,
-            currentBf: true,
-            height: true,
-            imageUrl: true,
-            createdAt: true,
-          },
-        },
+        buyer: true,
         Plan: {
           select: {
             id: true,
@@ -62,8 +51,6 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
         !clientMap.has(buyer.id) ||
         purchase.createdAt > clientMap.get(buyer.id).latestPurchaseDate
       ) {
-        const isActive = purchase.status === 'ACTIVE'
-
         clientMap.set(buyer.id, {
           id: buyer.id,
           name: buyer.name || 'Cliente sem nome',
@@ -79,11 +66,17 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
           latestPurchaseDate: purchase.createdAt,
           latestPlanName: purchase.Plan?.name,
           purchaseStatus: purchase.status,
-          isActive: isActive,
+          isActive: purchase.status === 'ACTIVE',
           totalSpent: 0,
           purchaseCount: 0,
           tasks: [],
         })
+      } else {
+        // Atualize o isActive se esta compra for ativa
+        const clientData = clientMap.get(buyer.id)
+        if (purchase.status === 'ACTIVE') {
+          clientData.isActive = true // Define como ativo se houver uma compra ativa
+        }
       }
     }
 
@@ -158,10 +151,9 @@ export async function getClientsByProfessionalIdService(professionalId: string) 
         }
       }
     }
-
-    // Convert map values to array
+    console.log(clientMap)
     const clients = Array.from(clientMap.values())
-    console.log(clients)
+
     return clients
   } catch (error) {
     console.error('Error in getClientsByProfessionalIdService:', error)

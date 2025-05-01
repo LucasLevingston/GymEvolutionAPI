@@ -24,7 +24,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
   })
 
   const createTrainingDaySchema = z.object({
-    group: z.string(),
+    muscleGroups: z.string(),
     dayOfWeek: z.string(),
     comments: z.string().optional(),
     isCompleted: z.boolean().default(false),
@@ -77,7 +77,7 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
 
   const trainingDayResponseSchema = z.object({
     id: z.string().uuid(),
-    group: z.string(),
+    muscleGroups: z.string(),
     dayOfWeek: z.string(),
     isCompleted: z.boolean(),
     comments: z.string().nullable(),
@@ -94,22 +94,22 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
 
   server.get(
     '/',
-    {
-      schema: {
-        querystring: getAllTrainingWeeksQuerySchema,
-        response: {
-          200: getAllTrainingWeeksResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          400: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['training'],
-        summary: 'Get all training weeks',
-        description: 'Get all training weeks for a user',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     querystring: getAllTrainingWeeksQuerySchema,
+    //     response: {
+    //       200: getAllTrainingWeeksResponseSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       400: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['training'],
+    //     summary: 'Get all training weeks',
+    //     description: 'Get all training weeks for a user',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     getAllTrainingWeeksController
   )
 
@@ -150,22 +150,22 @@ export async function trainingWeekRoutes(app: FastifyInstance) {
 
   server.get(
     '/:id',
-    {
-      schema: {
-        params: idParamSchema,
-        response: {
-          200: getTrainingWeekByIdResponseSchema,
-          401: errorResponseSchema,
-          403: errorResponseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
-        tags: ['training'],
-        summary: 'Get training week by ID',
-        description: 'Get a training week by ID',
-        security: [{ bearerAuth: [] }],
-      },
-    },
+    // {
+    //   schema: {
+    //     params: idParamSchema,
+    //     response: {
+    //       200: getTrainingWeekByIdResponseSchema,
+    //       401: errorResponseSchema,
+    //       403: errorResponseSchema,
+    //       404: errorResponseSchema,
+    //       500: errorResponseSchema,
+    //     },
+    //     tags: ['training'],
+    //     summary: 'Get training week by ID',
+    //     description: 'Get a training week by ID',
+    //     security: [{ bearerAuth: [] }],
+    //   },
+    // },
     getTrainingWeekByIdController
   )
 

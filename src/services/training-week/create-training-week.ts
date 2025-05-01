@@ -7,10 +7,11 @@ interface Exercise {
   repetitions: number
   sets: number
   isCompleted?: boolean
+  group: string
 }
 
 interface TrainingDay {
-  group: string
+  muscleGroup: string[]
   dayOfWeek: string
   day?: string | Date
   comments?: string
@@ -54,6 +55,7 @@ export async function createTrainingWeek({
                 repetitions: exercise.repetitions,
                 sets: exercise.sets,
                 variation: exercise.variation,
+                group: exercise.group,
               })),
             },
           }

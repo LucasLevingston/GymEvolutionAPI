@@ -42,6 +42,6 @@ export async function getUserByIdService(id: string) {
     tasks = await getTasksByProfessionalIdService(id)
     clients = await getClientsByProfessionalIdService(id)
   }
-  console.log(clients)
+
   return { ...user, tasks, clients }
 }

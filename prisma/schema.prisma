@@ -3,8 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum RoleEnum {
+  STUDENT
+  NUTRITIONIST
+  TRAINER
+  ADMIN
 }
 
 model User {
@@ -25,7 +32,7 @@ model User {
   resetPasswordToken   String?
   height               String?
   resetPasswordExpires DateTime?
-  role                 String    @default("STUDENT")
+  role                 RoleEnum  @default(STUDENT)
   useGooglePicture     Boolean   @default(false)
 
   bio            String?
@@ -36,9 +43,9 @@ model User {
   certifications String?
   education      String?
   availability   String?
-  reviews        String?
+  reviews        Review[]
 
-  approvalStatus  String?    @default("NOTSOLICITED") // NOTSOLICITED, APPROVED, REJECTED, WAITING
+  approvalStatus  approvalStatusEnum? @default(NOTSOLICITED) // NOTSOLICITED, APPROVED, REJECTED, WAITING
   approvedAt      DateTime?
   rejectedAt      DateTime?
   rejectionReason String?
@@ -54,23 +61,44 @@ model User {
   diets         Diet[]
   Notification  Notification[]
 
-  studentsAsNutritionist Relationship[] @relation("NutritionistToStudent")
-  studentsAsTrainer      Relationship[] @relation("TrainerToStudent")
-  nutritionistRelation   Relationship?  @relation("StudentToNutritionist")
-  trainerRelation        Relationship?  @relation("StudentToTrainer")
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  purchasesAsBuyer        Purchase[]            @relation("BuyerToPurchase")
-  purchasesAsProfessional Purchase[]            @relation("ProfessionalToPurchase")
+  purchasesAsBuyer        Purchase[] @relation("BuyerToPurchase")
+  purchasesAsProfessional Purchase[] @relation("ProfessionalToPurchase")
   Purchase                Purchase[]
-  googleRefreshToken      String?
-  googleAccessToken       String?
-  GoogleConnection        GoogleConnection?
-  ProfessionalSettings    ProfessionalSettings?
+
+  googleRefreshToken String?
+  googleAccessToken  String?
+  GoogleConnection   GoogleConnection?
+
+  ProfessionalSettings     ProfessionalSettings?
+  ProfessionalSubscription ProfessionalSubscription[]
 
   @@map("users")
+}
+
+enum approvalStatusEnum {
+  NOTSOLICITED
+  APPROVED
+  REJECTED
+  WAITING
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  comments String
+  rating   String
+
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  purchaseId String
+  Purchase   Purchase @relation(fields: [purchaseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Document {
@@ -93,10 +121,10 @@ model ProfessionalSettings {
   workStartHour       Int      @default(9)
   workEndHour         Int      @default(17)
   appointmentDuration Int      @default(60)
-  workDays            String   @default("1,2,3,4,5") // Comma-separated days: 0 = Sunday, 1 = Monday, etc.
+  workDays            String   @default("1,2,3,4,5")
   timeZone            String   @default("America/Sao_Paulo")
-  bufferBetweenSlots  Int      @default(0) // Buffer time in minutes between appointments
-  maxAdvanceBooking   Int      @default(30) // Maximum days in advance for booking
+  bufferBetweenSlots  Int      @default(0)
+  maxAdvanceBooking   Int      @default(30)
   autoAcceptMeetings  Boolean  @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -153,8 +181,9 @@ model Feature {
   dietId String?
   Diet   Diet[]
 
-  isFeedback Boolean @default(false)
-  feedback   String
+  isFeedback    Boolean @default(false)
+  feedback      String
+  dateToResolve String?
 
   isConsultation        Boolean @default(false)
   consultationMeetingId String
@@ -173,26 +202,44 @@ model Feature {
   @@map("features")
 }
 
-model Relationship {
-  id String @id @default(uuid())
+model ProfessionalSubscription {
+  id                 String                             @id @default(uuid())
+  userId             String
+  user               User                               @relation(fields: [userId], references: [id])
+  subscriptionPlanId String
+  subscriptionPlan   SubscriptionPlan                   @relation(fields: [subscriptionPlanId], references: [id])
+  status             ProfessionalSubscriptionStatusEnum @default(ACTIVE) // ACTIVE, CANCELLED, EXPIRED
+  startDate          DateTime                           @default(now())
+  endDate            DateTime?
+  paymentId          String?
+  paymentMethod      String?
+  autoRenew          Boolean                            @default(true)
+  createdAt          DateTime                           @default(now())
+  updatedAt          DateTime                           @updatedAt
 
-  nutritionist   User?   @relation("NutritionistToStudent", fields: [nutritionistId], references: [id])
-  nutritionistId String?
+  @@map("professionalSubscriptions")
+}
 
-  student   User?   @relation("StudentToNutritionist", fields: [studentId], references: [id], onDelete: SetNull)
-  studentId String? @unique
+enum ProfessionalSubscriptionStatusEnum {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
 
-  trainer    User?   @relation("TrainerToStudent", fields: [trainerId], references: [id])
-  trainerId  String?
-  student2   User?   @relation("StudentToTrainer", fields: [student2Id], references: [id], onDelete: SetNull)
-  student2Id String? @unique
+model SubscriptionPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  interval    String   @default("month")
+  features    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  status    String    @default("PENDING")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Purchase  Purchase?
+  subscriptions ProfessionalSubscription[]
 
-  @@map("relationships")
+  @@map("subscriptionPlans")
 }
 
 model History {
@@ -240,11 +287,11 @@ model TrainingWeek {
 }
 
 model TrainingDay {
-  id          String  @id @default(uuid())
-  group       String
-  dayOfWeek   String
-  isCompleted Boolean @default(false)
-  comments    String?
+  id           String   @id @default(uuid())
+  muscleGroups String[]
+  dayOfWeek    String
+  isCompleted  Boolean  @default(false)
+  comments     String?
 
   trainingWeek   TrainingWeek? @relation(fields: [trainingWeekId], references: [id], onDelete: Cascade)
   trainingWeekId String?
@@ -259,6 +306,7 @@ model TrainingDay {
 model Exercise {
   id            String       @id @default(uuid())
   name          String
+  group         String
   variation     String?
   repetitions   Int
   sets          Int
@@ -375,18 +423,17 @@ model Purchase {
 
   planId        String
   amount        Float
-  paymentStatus String  @default("PENDING")
+  paymentStatus paymentStatusEnum @default(PENDING)
   paymentMethod String?
   paymentId     String?
 
-  status String @default("WAITINGPAYMENT") // WAITINGPAYMENT, ACTIVE, COMPLETED, CANCELLED
+  status purchaseStatusEnum @default(WAITINGPAYMENT) // WAITINGPAYMENT, ACTIVE, COMPLETED, CANCELLED
 
   cancelReason  String?
   cancelComment String?
   cancelledAt   DateTime?
 
-  relationship   Relationship? @relation(fields: [relationshipId], references: [id])
-  relationshipId String?       @unique
+  relationshipId String? @unique
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -395,7 +442,21 @@ model Purchase {
   Plan      Plan      @relation(fields: [planId], references: [id])
   Meeting   Meeting[]
 
+  Review Review[]
+
   @@map("purchases")
+}
+
+enum paymentStatusEnum {
+  PENDING
+  COMPLETED
+}
+
+enum purchaseStatusEnum {
+  WAITINGPAYMENT
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 model Meeting {

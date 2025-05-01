@@ -35,6 +35,8 @@ import fastifyStatic from '@fastify/static'
 import path from 'path'
 import { fatsecretRoutes } from 'routes/fatsecret-routes'
 
+const { PORT: port, HOST: host, JWT_SECRET_KEY } = env
+
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.register(fastifyCors, {
@@ -42,7 +44,7 @@ app.register(fastifyCors, {
 })
 
 app.register(fastifyJwt, {
-  secret: env.JWT_SECRET_KEY || 'secret-key',
+  secret: JWT_SECRET_KEY || 'secret-key',
 })
 
 app.register(fastifySwagger, {
@@ -104,8 +106,6 @@ app.get('/help', () => {
     message: 'Welcome to GymEvolution!',
   }
 })
-const port = env.PORT
-const host = env.HOST
 
 app.listen({ host, port }, async (err) => {
   if (err) {

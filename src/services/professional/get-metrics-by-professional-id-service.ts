@@ -1,315 +1,197 @@
-export function calculateDateRanges(timeRange: string) {
-  const now = new Date()
-  let currentPeriodStart: Date
-  const currentPeriodEnd: Date = new Date(now)
+import { prisma } from 'lib/prisma'
 
-  switch (timeRange) {
-    case 'week':
-      currentPeriodStart = new Date(now)
-      currentPeriodStart.setDate(now.getDate() - 7)
-      break
-
-    case 'month':
-      currentPeriodStart = new Date(now)
-      currentPeriodStart.setMonth(now.getMonth() - 1)
-      break
-
-    case 'quarter':
-      currentPeriodStart = new Date(now)
-      currentPeriodStart.setMonth(now.getMonth() - 3)
-      break
-
-    case 'year':
-      currentPeriodStart = new Date(now)
-      currentPeriodStart.setFullYear(now.getFullYear() - 1)
-      break
-
-    default:
-      // Default to month
-      currentPeriodStart = new Date(now)
-      currentPeriodStart.setMonth(now.getMonth() - 1)
-  }
-
-  return {
-    currentPeriodStart,
-    currentPeriodEnd,
-  }
-}
-
-/**
- * Generate chart data based on the chart type
- */
-export async function generateChartData(
+// Comprehensive metrics service that fetches all metrics data at once
+export async function getAllProfessionalMetrics(
   professionalId: string,
-  chartType: string,
-  startDate: Date,
-  endDate: Date,
   timeRange: string
 ) {
-  // Determine the interval based on the time range
-  let interval: 'day' | 'week' | 'month'
-  switch (timeRange) {
-    case 'week':
-      interval = 'day'
-      break
-    case 'month':
-      interval = 'day'
-      break
-    case 'quarter':
-      interval = 'week'
-      break
-    case 'year':
-      interval = 'month'
-      break
-    default:
-      interval = 'day'
-  }
+  try {
+    // Determine date ranges based on timeRange
+    const now = new Date()
+    const startDate = new Date()
+    const previousStartDate = new Date()
 
-  // Generate date labels based on the interval
-  const labels = generateDateLabels(startDate, endDate, interval)
-
-  // Generate data points based on the chart type and interval
-  let datasets = []
-
-  switch (chartType) {
-    case 'revenue':
-      datasets = await generateRevenueChartData(
-        professionalId,
-        startDate,
-        endDate,
-        interval,
-        labels
-      )
-      break
-    case 'clients':
-      datasets = await generateClientsChartData(
-        professionalId,
-        startDate,
-        endDate,
-        interval,
-        labels
-      )
-      break
-    case 'retention':
-      datasets = await generateRetentionChartData(
-        professionalId,
-        startDate,
-        endDate,
-        interval,
-        labels
-      )
-      break
-    case 'ratings':
-      datasets = await generateRatingsChartData(
-        professionalId,
-        startDate,
-        endDate,
-        interval,
-        labels
-      )
-      break
-    default:
-      datasets = await generateRevenueChartData(
-        professionalId,
-        startDate,
-        endDate,
-        interval,
-        labels
-      )
-  }
-
-  return {
-    labels,
-    datasets,
-  }
-}
-
-/**
- * Generate date labels based on the interval
- */
-function generateDateLabels(
-  startDate: Date,
-  endDate: Date,
-  interval: 'day' | 'week' | 'month'
-) {
-  const labels = []
-  const currentDate = new Date(startDate)
-
-  while (currentDate <= endDate) {
-    let label
-
-    switch (interval) {
-      case 'day':
-        label = currentDate.toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-        })
-        currentDate.setDate(currentDate.getDate() + 1)
-        break
-      case 'week':
-        label = `Semana ${Math.ceil((currentDate.getDate() + currentDate.getDay()) / 7)}`
-        currentDate.setDate(currentDate.getDate() + 7)
-        break
-      case 'month':
-        label = currentDate.toLocaleDateString('pt-BR', { month: 'short' })
-        currentDate.setMonth(currentDate.getMonth() + 1)
-        break
+    if (timeRange === 'week') {
+      startDate.setDate(now.getDate() - 7)
+      previousStartDate.setDate(now.getDate() - 14)
+    } else if (timeRange === 'month') {
+      startDate.setMonth(now.getMonth() - 1)
+      previousStartDate.setMonth(now.getMonth() - 2)
+    } else if (timeRange === 'quarter') {
+      startDate.setMonth(now.getMonth() - 3)
+      previousStartDate.setMonth(now.getMonth() - 6)
+    } else if (timeRange === 'year') {
+      startDate.setFullYear(now.getFullYear() - 1)
+      previousStartDate.setFullYear(now.getFullYear() - 2)
+    } else {
+      // Default to month if invalid timeRange
+      startDate.setMonth(now.getMonth() - 1)
+      previousStartDate.setMonth(now.getMonth() - 2)
     }
 
-    labels.push(label)
+    // Get professional data
+    const professional = await prisma.user.findUnique({
+      where: {
+        id: professionalId,
+      },
+      select: {
+        id: true,
+        name: true,
+        rating: true,
+        reviews: {
+          include: {
+            User: {
+              select: {
+                name: true,
+                email: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+        experience: true,
+        approvalStatus: true,
+        plans: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            purchases: {
+              where: {
+                paymentStatus: 'COMPLETED',
+              },
+              select: {
+                id: true,
+                amount: true,
+                createdAt: true,
+                buyerId: true,
+              },
+            },
+          },
+        },
+        meetingsAsProfessional: {
+          select: {
+            id: true,
+            status: true,
+            startTime: true,
+            endTime: true,
+            studentId: true,
+          },
+        },
+        purchasesAsProfessional: {
+          where: {
+            paymentStatus: 'COMPLETED',
+          },
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+            buyerId: true,
+            planId: true,
+          },
+        },
+        studentsAsNutritionist: {
+          where: {
+            status: 'ACTIVE',
+          },
+          select: {
+            id: true,
+            studentId: true,
+            createdAt: true,
+          },
+        },
+        studentsAsTrainer: {
+          where: {
+            status: 'ACTIVE',
+          },
+          select: {
+            id: true,
+            student2Id: true,
+            createdAt: true,
+          },
+        },
+        ProfessionalSubscription: {
+          where: {
+            status: 'ACTIVE',
+          },
+          select: {
+            id: true,
+            subscriptionPlan: true,
+          },
+        },
+      },
+    })
+
+    if (!professional) {
+      throw new Error('Professional not found')
+    }
+
+    // Get all purchases (including current and previous periods)
+    const allPurchases = await prisma.purchase.findMany({
+      where: {
+        professionalId,
+        paymentStatus: 'COMPLETED',
+      },
+      select: {
+        id: true,
+        amount: true,
+        createdAt: true,
+        buyerId: true,
+        planId: true,
+      },
+    })
+
+    // Get all purchase attempts for conversion rate
+    const allPurchaseAttempts = await prisma.purchase.count({
+      where: {
+        professionalId,
+      },
+    })
+
+    // Get all relationships for retention calculation
+    const allRelationships = await prisma.relationship.findMany({
+      where: {
+        OR: [{ nutritionistId: professionalId }, { trainerId: professionalId }],
+      },
+      select: {
+        id: true,
+        studentId: true,
+        student2Id: true,
+        createdAt: true,
+        status: true,
+      },
+    })
+
+    // Get clients with multiple purchases for retention rate
+    const clientsWithMultiplePurchases = await prisma.purchase.groupBy({
+      by: ['buyerId'],
+      where: {
+        professionalId: professionalId,
+        paymentStatus: 'COMPLETED',
+      },
+      having: {
+        buyerId: {
+          _count: {
+            gt: 1,
+          },
+        },
+      },
+    })
+
+    return {
+      professional,
+      allPurchases,
+      allPurchaseAttempts,
+      allRelationships,
+      clientsWithMultiplePurchases,
+      timeRanges: {
+        now,
+        startDate,
+        previousStartDate,
+      },
+    }
+  } catch (error) {
+    console.error('Error fetching professional metrics:', error)
+    throw error
   }
-
-  return labels
-}
-
-/**
- * Generate revenue chart data
- */
-async function generateRevenueChartData(
-  professionalId: string,
-  startDate: Date,
-  endDate: Date,
-  interval: 'day' | 'week' | 'month',
-  labels: string[]
-) {
-  // In a real implementation, you would query the database to get revenue data
-  // For now, we'll generate random data
-  const totalRevenueData = labels.map(() => Math.floor(Math.random() * 5000) + 1000)
-  const recurringRevenueData = labels.map(() => Math.floor(Math.random() * 3000) + 500)
-
-  return [
-    {
-      label: 'Receita Total',
-      data: totalRevenueData,
-      backgroundColor: 'rgba(59, 130, 246, 0.5)',
-      borderColor: 'rgb(59, 130, 246)',
-      borderWidth: 1,
-    },
-    {
-      label: 'Receita Recorrente',
-      data: recurringRevenueData,
-      backgroundColor: 'rgba(16, 185, 129, 0.5)',
-      borderColor: 'rgb(16, 185, 129)',
-      borderWidth: 1,
-    },
-  ]
-}
-
-/**
- * Generate clients chart data
- */
-async function generateClientsChartData(
-  professionalId: string,
-  startDate: Date,
-  endDate: Date,
-  interval: 'day' | 'week' | 'month',
-  labels: string[]
-) {
-  // In a real implementation, you would query the database to get client data
-  // For now, we'll generate random data
-  const totalClientsData = labels.map(() => Math.floor(Math.random() * 20) + 10)
-  const newClientsData = labels.map(() => Math.floor(Math.random() * 5) + 1)
-
-  return [
-    {
-      label: 'Total de Clientes',
-      data: totalClientsData,
-      backgroundColor: 'rgba(59, 130, 246, 0.5)',
-      borderColor: 'rgb(59, 130, 246)',
-      borderWidth: 1,
-    },
-    {
-      label: 'Novos Clientes',
-      data: newClientsData,
-      backgroundColor: 'rgba(16, 185, 129, 0.5)',
-      borderColor: 'rgb(16, 185, 129)',
-      borderWidth: 1,
-    },
-  ]
-}
-
-/**
- * Generate retention chart data
- */
-async function generateRetentionChartData(
-  professionalId: string,
-  startDate: Date,
-  endDate: Date,
-  interval: 'day' | 'week' | 'month',
-  labels: string[]
-) {
-  // In a real implementation, you would query the database to get retention data
-  // For now, we'll generate random data
-  const retentionRateData = labels.map(() => Math.floor(Math.random() * 30) + 70)
-  const churnRateData = labels.map((_label, index) => 100 - retentionRateData[index])
-
-  return [
-    {
-      label: 'Taxa de Retenção',
-      data: retentionRateData,
-      backgroundColor: 'rgba(16, 185, 129, 0.5)',
-      borderColor: 'rgb(16, 185, 129)',
-      borderWidth: 1,
-    },
-    {
-      label: 'Taxa de Churn',
-      data: churnRateData,
-      backgroundColor: 'rgba(239, 68, 68, 0.5)',
-      borderColor: 'rgb(239, 68, 68)',
-      borderWidth: 1,
-    },
-  ]
-}
-
-/**
- * Generate ratings chart data
- */
-async function generateRatingsChartData(
-  professionalId: string,
-  startDate: Date,
-  endDate: Date,
-  interval: 'day' | 'week' | 'month',
-  labels: string[]
-) {
-  // In a real implementation, you would query the database to get ratings data
-  // For now, we'll generate random data
-  const averageRatingData = labels.map(() => Math.random() * 1.5 + 3.5)
-
-  // Distribution of ratings (1-5 stars)
-  const distributionData = [
-    Math.floor(Math.random() * 5) + 1, // 1 star
-    Math.floor(Math.random() * 10) + 5, // 2 stars
-    Math.floor(Math.random() * 15) + 10, // 3 stars
-    Math.floor(Math.random() * 25) + 20, // 4 stars
-    Math.floor(Math.random() * 30) + 30, // 5 stars
-  ]
-
-  return [
-    {
-      label: 'Avaliação Média',
-      data: averageRatingData,
-      backgroundColor: 'rgba(59, 130, 246, 0.5)',
-      borderColor: 'rgb(59, 130, 246)',
-      borderWidth: 1,
-    },
-    {
-      label: 'Distribuição de Avaliações',
-      data: distributionData,
-      backgroundColor: [
-        'rgba(239, 68, 68, 0.5)', // 1 star - red
-        'rgba(245, 158, 11, 0.5)', // 2 stars - amber
-        'rgba(252, 211, 77, 0.5)', // 3 stars - yellow
-        'rgba(132, 204, 22, 0.5)', // 4 stars - lime
-        'rgba(16, 185, 129, 0.5)', // 5 stars - green
-      ],
-      borderColor: [
-        'rgb(239, 68, 68)',
-        'rgb(245, 158, 11)',
-        'rgb(252, 211, 77)',
-        'rgb(132, 204, 22)',
-        'rgb(16, 185, 129)',
-      ],
-      borderWidth: 1,
-    },
-  ]
 }

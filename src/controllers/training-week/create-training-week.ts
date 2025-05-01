@@ -10,10 +10,11 @@ interface Exercise {
   repetitions: number
   sets: number
   done?: boolean
+  group: string
 }
 
 interface TrainingDay {
-  group: string
+  muscleGroup: string[]
   dayOfWeek: string
   comments?: string
   done?: boolean

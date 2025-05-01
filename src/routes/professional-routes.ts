@@ -15,6 +15,9 @@ import { getTasksByProfessionalIdController } from 'controllers/professional/get
 import { getMetricsByProfessionalIdController } from 'controllers/professional/get-metrics-by-professional-id-controller'
 import { createDietForClientController } from 'controllers/professional/create-diet-for-client-controller'
 import { createTrainingForClientController } from 'controllers/professional/create-training-for-client-controller'
+import { updateProfessionalSettingsController } from 'controllers/professional/update-professional-settings-controller'
+import { createProfessionalSettingsController } from 'controllers/professional/create-professional-settings-controller'
+import { createFeedbackForClientController } from 'controllers/professional/create-feedback-for-client-controller'
 // import { createTrainingFeedbackController } from 'controllers/professional/create-training-feedback-controller'
 // import { createDietFeedbackController } from 'controllers/professional/create-diet-feedback-controller'
 
@@ -45,8 +48,13 @@ export async function professionalRoutes(app: FastifyInstance) {
     { onRequest: [authenticate] },
     getMetricsByProfessionalIdController
   )
+  server.put(
+    '/:professionalId',
+    { onRequest: [authenticate] },
+    updateProfessionalSettingsController
+  )
+  server.post('/', { onRequest: [authenticate] }, createProfessionalSettingsController)
 
-  // Novas rotas
   server.post(
     '/client/training',
     { onRequest: [authenticate] },
@@ -57,6 +65,11 @@ export async function professionalRoutes(app: FastifyInstance) {
     '/client/diet',
     { onRequest: [authenticate] },
     createDietForClientController
+  )
+  server.post(
+    '/client/feedback',
+    { onRequest: [authenticate] },
+    createFeedbackForClientController
   )
 
   // server.post(
