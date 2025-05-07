@@ -4,10 +4,10 @@ export async function getProfessionalsService() {
   const professionals = await prisma.user.findMany({
     where: {
       OR: [{ role: 'NUTRITIONIST' }, { role: 'TRAINER' }],
-      approvalStatus: 'APROVED',
     },
     include: {
       reviews: true,
+      ProfessionalSettings: true,
     },
   })
 
@@ -27,5 +27,8 @@ export async function getProfessionalsService() {
     education: user.education ? JSON.parse(user.education) : [],
     availability: user.availability ? user.availability.split(',') : [],
     reviews: user.reviews,
+    createdAt: user.createdAt,
+    documentUrl: user.documentUrl,
+    ProfessionalSettings: user.ProfessionalSettings,
   }))
 }

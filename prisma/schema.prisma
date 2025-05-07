@@ -39,6 +39,7 @@ model User {
   experience     Int?
   rating         Float?
   imageUrl       String?
+  documentUrl    String?
   specialties    String?
   certifications String?
   education      String?
@@ -49,7 +50,6 @@ model User {
   approvedAt      DateTime?
   rejectedAt      DateTime?
   rejectionReason String?
-  documents       Document[]
 
   plans                  Plan[]    @relation("ProfessionalToPlans")
   meetingsAsProfessional Meeting[] @relation("ProfessionalToMeetings")
@@ -99,20 +99,6 @@ model Review {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Document {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  url         String
-  type        String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("documents")
 }
 
 model ProfessionalSettings {
@@ -169,37 +155,39 @@ model Plan {
   @@map("plans")
 }
 
+enum FeatureType {
+  TRAINING_WEEK
+  DIET
+  FEEDBACK
+  CONSULTATION
+  RETURN
+  MATERIALS
+}
+
 model Feature {
-  id   String @id @default(uuid())
-  name String
+  id     String      @id @default(uuid())
+  planId String
+  plan   Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name   String
+  type   FeatureType
 
-  isTrainingWeek Boolean        @default(false)
   trainingWeekId String?
-  TrainingWeek   TrainingWeek[]
 
-  isDiet Boolean @default(false)
   dietId String?
-  Diet   Diet[]
 
-  isFeedback    Boolean @default(false)
-  feedback      String
-  dateToResolve String?
+  feedback     String?
+  scheduledDay Int?
 
-  isConsultation        Boolean @default(false)
-  consultationMeetingId String
+  consultationMeetingId String?
 
-  isReturn        Boolean @default(false)
-  returnMeetingId String
+  returnMeetingId String?
 
   linkToResolve String?
 
-  Plan   Plan?   @relation(fields: [planId], references: [id])
-  planId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("features")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  TrainingWeek TrainingWeek[]
+  Diet         Diet[]
 }
 
 model ProfessionalSubscription {

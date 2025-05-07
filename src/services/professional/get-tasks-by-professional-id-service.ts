@@ -1,4 +1,5 @@
 import { prisma } from 'lib/prisma'
+import { Task } from 'types/client-type'
 
 export async function getTasksByProfessionalIdService(professionalId: string) {
   const activePurchases = await prisma.purchase.findMany({
@@ -22,7 +23,7 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
     },
   })
 
-  const tasks = []
+  const tasks: Task[] = []
 
   // Process each purchase to extract tasks from features
   for (const purchase of activePurchases) {
@@ -35,13 +36,13 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
       // Skip features that don't represent tasks
       if (!feature) continue
 
-      let taskType = ''
-      let taskStatus = 'PENDING'
+      let taskType: 'TRAINING' | 'DIET' | 'FEEDBACK' | 'CONSULTATION' | 'RETURN'
+      let taskStatus: 'COMPLETED' | 'PENDING' | 'IN_PROGRESS'
       let taskTitle = ''
       let taskDescription = ''
       let dueDate = null
 
-      if (feature.isTrainingWeek) {
+      if (feature.type === 'TRAINING_WEEK') {
         taskType = 'TRAINING'
         taskTitle = 'Create Training Plan'
         taskDescription = 'Create a training plan for the client'
@@ -49,7 +50,7 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
         if (feature.trainingWeekId) {
           taskStatus = 'COMPLETED'
         }
-      } else if (feature.isDiet) {
+      } else if (feature.type === 'DIET') {
         taskType = 'DIET'
         taskTitle = 'Create Diet Plan'
         taskDescription = 'Create a diet plan for the client'
@@ -57,12 +58,12 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
         if (feature.dietId) {
           taskStatus = 'COMPLETED'
         }
-      } else if (feature.isFeedback) {
+      } else if (feature.type === 'FEEDBACK') {
         taskType = 'FEEDBACK'
         taskTitle = 'Provide Feedback'
         taskDescription = feature.feedback || 'Provide feedback to the client'
         taskStatus = 'PENDING'
-      } else if (feature.isConsultation && !feature.consultationMeetingId) {
+      } else if (feature.type === 'CONSULTATION') {
         taskType = 'CONSULTATION'
         taskTitle = 'Initial Consultation'
         taskDescription = 'Schedule or conduct initial consultation with client'
@@ -80,7 +81,7 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
             }
           }
         }
-      } else if (feature.isReturn && !feature.returnMeetingId) {
+      } else if (feature.type === 'RETURN') {
         taskType = 'RETURN'
         taskTitle = 'Follow-up Meeting'
         taskDescription = 'Schedule or conduct follow-up meeting with client'
@@ -113,7 +114,6 @@ export async function getTasksByProfessionalIdService(professionalId: string) {
         status: taskStatus,
         purchaseId: purchase.id,
         featureId: feature.id,
-        linkToResolve: feature.linkToResolve,
         dueDate: dueDate,
       })
     }

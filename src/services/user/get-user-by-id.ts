@@ -1,6 +1,7 @@
 import { prisma } from 'lib/prisma'
 import { getClientsByProfessionalIdService } from 'services/professional/get-clients-by-professional-id'
 import { getTasksByProfessionalIdService } from 'services/professional/get-tasks-by-professional-id-service'
+import { Client, Task } from 'types/client-type'
 
 export async function getUserByIdService(id: string) {
   const user = await prisma.user.findUnique({
@@ -21,12 +22,12 @@ export async function getUserByIdService(id: string) {
           },
         },
       },
-      plans: true,
-      meetingsAsProfessional: true,
-      meetingsAsStudent: true,
-      nutritionistRelation: true,
       ProfessionalSettings: true,
-      trainerRelation: true,
+      plans: {
+        include: {
+          features: true,
+        },
+      },
       diets: {
         include: {
           meals: {
@@ -36,12 +37,12 @@ export async function getUserByIdService(id: string) {
       },
     },
   })
-  let tasks = []
-  let clients = []
+  let tasks: Task[]
+  let clients: Client[]
   if (user?.role === 'NUTRITIONIST' || user?.role === 'TRAINER') {
-    tasks = await getTasksByProfessionalIdService(id)
     clients = await getClientsByProfessionalIdService(id)
+    tasks = await getTasksByProfessionalIdService(id)
   }
 
-  return { ...user, tasks, clients }
+  return tasks && clients ? { ...user, tasks, clients } : user
 }

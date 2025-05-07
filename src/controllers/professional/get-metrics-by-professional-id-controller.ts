@@ -107,14 +107,6 @@ export async function getMetricsByProfessionalIdController(
       })
     }
 
-    const nutritionClients = professional.studentsAsNutritionist.length
-    const trainingClients = professional.studentsAsTrainer.length
-
-    const clientsByType = [
-      { type: 'Nutrition', count: nutritionClients },
-      { type: 'Training', count: trainingClients },
-    ]
-
     const monthlyRecurring = professional.ProfessionalSubscription.reduce((sum, sub) => {
       const monthlyValue =
         sub.subscriptionPlan.interval === 'year'
@@ -263,7 +255,6 @@ export async function getMetricsByProfessionalIdController(
         activeClients,
         retentionRate,
         newClients,
-        clientsByType,
       },
       reviews: {
         averageRating: professional.rating,

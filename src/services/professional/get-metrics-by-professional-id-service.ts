@@ -90,26 +90,7 @@ export async function getAllProfessionalMetrics(
             planId: true,
           },
         },
-        studentsAsNutritionist: {
-          where: {
-            status: 'ACTIVE',
-          },
-          select: {
-            id: true,
-            studentId: true,
-            createdAt: true,
-          },
-        },
-        studentsAsTrainer: {
-          where: {
-            status: 'ACTIVE',
-          },
-          select: {
-            id: true,
-            student2Id: true,
-            createdAt: true,
-          },
-        },
+
         ProfessionalSubscription: {
           where: {
             status: 'ACTIVE',
@@ -148,20 +129,6 @@ export async function getAllProfessionalMetrics(
       },
     })
 
-    // Get all relationships for retention calculation
-    const allRelationships = await prisma.relationship.findMany({
-      where: {
-        OR: [{ nutritionistId: professionalId }, { trainerId: professionalId }],
-      },
-      select: {
-        id: true,
-        studentId: true,
-        student2Id: true,
-        createdAt: true,
-        status: true,
-      },
-    })
-
     // Get clients with multiple purchases for retention rate
     const clientsWithMultiplePurchases = await prisma.purchase.groupBy({
       by: ['buyerId'],
@@ -182,7 +149,6 @@ export async function getAllProfessionalMetrics(
       professional,
       allPurchases,
       allPurchaseAttempts,
-      allRelationships,
       clientsWithMultiplePurchases,
       timeRanges: {
         now,

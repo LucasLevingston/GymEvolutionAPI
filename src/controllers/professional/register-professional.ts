@@ -22,7 +22,7 @@ export async function registerProfessionalController(
           buffer: await part.toBuffer(),
           filename: part.filename,
           mimetype: part.mimetype,
-          toBuffer: async () => part.file, // Ensure toBuffer method is available
+          toBuffer: async () => part.file,
         }
       } else {
         formData[part.fieldname] = part.value
@@ -33,43 +33,21 @@ export async function registerProfessionalController(
     const bio = formData.bio
     const experience = Number.parseInt(formData.experience)
     const availability = formData.availability
+    const professionalSettings = formData.professionalSettings
 
     const specialties = JSON.parse(formData.specialties || '[]')
     const certifications = JSON.parse(formData.certifications || '[]')
     const education = JSON.parse(formData.education || '[]')
 
-    const documentCount = Number.parseInt(formData.documentCount || '0')
-
     let profileImageUrl = null
+    let documentUrl = null
 
     if (files.profileImage) {
       profileImageUrl = await saveProfileImageService(files.profileImage, userId)
     }
 
-    // Format documents as an array of DocumentFile objects
-    const documentsArray = []
-    for (let i = 0; i < documentCount; i++) {
-      const documentFile = files[`document_${i}`]
-      if (documentFile) {
-        documentsArray.push({
-          file: documentFile,
-          name:
-            formData[`document_${i}_name`] ||
-            documentFile.filename ||
-            `Document ${i + 1}`,
-          description: formData[`document_${i}_description`] || '',
-        })
-      }
-    }
-
-    // Only call saveDocumentsService if there are documents to save
-    if (documentsArray.length > 0) {
-      try {
-        await saveDocumentsService(documentsArray, userId)
-      } catch (error) {
-        console.error('Error saving documents:', error)
-        // Continue with registration even if document saving fails
-      }
+    if (files.document) {
+      documentUrl = await saveDocumentsService(files.document, userId)
     }
 
     const professional = await registerProfessionalService({
@@ -78,10 +56,12 @@ export async function registerProfessionalController(
       bio,
       experience,
       specialties,
+      documentUrl,
       certifications,
       education,
       availability,
       imageUrl: profileImageUrl,
+      professionalSettings,
     })
 
     return reply.status(201).send({
